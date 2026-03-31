@@ -7,6 +7,8 @@
         <class>AntoninoPalazzolo.entities.Stop</class>
         <class>AntoninoPalazzolo.entities.Route</class>
         <class>AntoninoPalazzolo.entities.Vehicle</class>
+        <class>AntoninoPalazzolo.entities.VehicleStatusLog</class>
+        <class>AntoninoPalazzolo.entities.UserCard</class>
         <properties>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/buildweek"/>
             <!-- value= numero porta del database + /nomedatabase(in questo caso buildweek -->

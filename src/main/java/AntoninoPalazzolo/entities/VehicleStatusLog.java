@@ -51,6 +51,14 @@ public class VehicleStatusLog {
         return vehicle;
     }
 
+    public boolean isVehicleInService() {
+        return vehicleInService;
+    }
+
+    public boolean isPermanentlyOutOfService() {
+        return permanentlyOutOfService;
+    }
+
     @Override
     public String toString() {
         return "VehicleStatusLog{" +

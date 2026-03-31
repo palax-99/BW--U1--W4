@@ -54,6 +54,10 @@ public class Vehicle {
         return capacity;
     }
 
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    } // lo useremo successivamente
+
     @Override
     public String toString() {
         return "Vehicle{" +

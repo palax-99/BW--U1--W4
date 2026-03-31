@@ -39,6 +39,15 @@ public class VehicleStatusLog {
         // della creazione del log
     }
 
+    public VehicleStatusLog(Vehicle vehicle, boolean vehicleInService) {
+        this.vehicle = vehicle;
+        this.vehicleInService = vehicleInService;
+        this.permanentlyOutOfService = false;
+        this.vehicleAvailabilityUpdatedOn = LocalDateTime.now();
+        //La data di aggiornamento viene impostata automaticamente al momento
+        // della creazione del log
+    }
+
     public UUID getIdVehicleStatusLog() {
         return idVehicleStatusLog;
     }

@@ -14,13 +14,13 @@ public class Route {
     @Column(name = "id_route")
     private UUID idRoute;
 
-    @ManyToOne
-    @JoinColumn(name = "departure", nullable = false)
-    private Stop departure;
 
-    @ManyToOne
-    @JoinColumn(name = "terminus", nullable = false)
-    private Stop terminus;
+    @Column(name = "departure", nullable = false)
+    private String departure;
+
+
+    @Column(name = "terminus", nullable = false)
+    private String terminus;
 
     @Column(name = "travel_time_minutes", nullable = false)
     private int travelTimeMinutes;
@@ -34,7 +34,7 @@ public class Route {
     protected Route() {
     }
 
-    public Route(Stop departure, Stop terminus, int travelTimeMinutes,
+    public Route(String departure, String terminus, int travelTimeMinutes,
                  LocalTime scheduledDepartureTime, LocalTime scheduledArrivalTime) {
         this.departure = departure;
         this.terminus = terminus;
@@ -47,11 +47,11 @@ public class Route {
         return idRoute;
     }
 
-    public Stop getDeparture() {
+    public String getDeparture() {
         return departure;
     }
 
-    public Stop getTerminus() {
+    public String getTerminus() {
         return terminus;
     }
 

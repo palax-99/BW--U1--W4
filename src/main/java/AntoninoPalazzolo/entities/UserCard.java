@@ -2,7 +2,6 @@ package AntoninoPalazzolo.entities;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -18,15 +17,6 @@ public class UserCard {
     @Column(name = "user_card_number", nullable = false, unique = true)
     private long userCardNumber;
 
-    @Column(name = "user_name", nullable = false)
-    private String userName;
-
-    @Column(name = "user_surname", nullable = false)
-    private String userSurname;
-
-    @Column(name = "user_date_of_birth", nullable = false)
-    private LocalDate userDateOfBirth;
-
     @Column(name = "card_issue_date", nullable = false)
     private LocalDateTime cardIssueDate;
     // La data di emissione viene impostata automaticamente al momento della creazione
@@ -41,19 +31,19 @@ public class UserCard {
     private LocalDateTime cardExpiryDate;
     // La data di scadenza è null alla creazione — viene calcolata al momento
     // dell'attivazione come cardActivationDate + 1 anno (tessera validità annuale)
+    @OneToOne
+    @JoinColumn(name = "id_user", nullable = false)
+    private User user;
 
     protected UserCard() {
     }
 
-    public UserCard(long userCardNumber, String userName, String userSurname, LocalDate userDateOfBirth) {
+    public UserCard(long userCardNumber, LocalDateTime cardIssueDate, User user) {
         this.userCardNumber = userCardNumber;
-        this.userName = userName;
-        this.userSurname = userSurname;
-        this.userDateOfBirth = userDateOfBirth;
-        this.cardIssueDate = LocalDateTime.now();
-        // Il costruttore riceve solo i dati anagrafici dell'utente e il numero tessera.
-        // Le date di attivazione e scadenza restano null — verranno impostate
-        // successivamente tramite un metodo dedicato quando la tessera viene attivata
+        this.cardIssueDate = cardIssueDate;
+        this.cardActivationDate = cardIssueDate;
+        this.cardExpiryDate = cardIssueDate.plusYears(1);
+        this.user = user;
     }
 
     public UUID getIdUserCard() {
@@ -64,17 +54,6 @@ public class UserCard {
         return userCardNumber;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public String getUserSurname() {
-        return userSurname;
-    }
-
-    public LocalDate getUserDateOfBirth() {
-        return userDateOfBirth;
-    }
 
     public LocalDateTime getCardIssueDate() {
         return cardIssueDate;
@@ -93,9 +72,6 @@ public class UserCard {
         return "UserCard{" +
                 "idUserCard=" + idUserCard +
                 ", userCardNumber=" + userCardNumber +
-                ", userName='" + userName + '\'' +
-                ", userSurname='" + userSurname + '\'' +
-                ", userDateOfBirth=" + userDateOfBirth +
                 ", cardIssueDate=" + cardIssueDate +
                 ", cardActivationDate=" + cardActivationDate +
                 ", cardExpiryDate=" + cardExpiryDate +

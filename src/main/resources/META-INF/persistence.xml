@@ -3,6 +3,9 @@
              xmlns="http://xmlns.jcp.org/xml/ns/persistence"
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
     <persistence-unit name="bwu1w4">
+        <class>AntoninoPalazzolo.entities.Zone</class>
+        <class>AntoninoPalazzolo.entities.Stop</class>
+        <class>AntoninoPalazzolo.entities.Route</class>
         <properties>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/buildweek"/>
             <!-- value= numero porta del database + /nomedatabase(in questo caso buildweek -->

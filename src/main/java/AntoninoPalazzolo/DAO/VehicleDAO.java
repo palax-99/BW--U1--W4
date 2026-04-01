@@ -1,6 +1,7 @@
 package AntoninoPalazzolo.DAO;
 
 import AntoninoPalazzolo.entities.Vehicle;
+import AntoninoPalazzolo.entities.VehicleStatusLog;
 import AntoninoPalazzolo.exception.NotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -37,6 +38,28 @@ public class VehicleDAO {
     public List<Vehicle> findAll() {
         TypedQuery<Vehicle> query = em.createQuery("SELECT v FROM Vehicle v", Vehicle.class);
         return query.getResultList();
+    }
+
+    // Aggiorno lo stato del veicolo creando un nuovo record nel log.
+// Non modifico il record esistente per mantenere lo storico completo dei cambi di stato.
+    public void updateVehicleStatus(Vehicle vehicle, boolean inService, boolean permanentlyOutOfService) {
+
+        // Apro la transazione come sempre quando scrivo nel DB
+        EntityTransaction transaction = em.getTransaction();
+        transaction.begin();
+
+        // Creo un nuovo record di log con il veicolo e il nuovo stato.
+        // Il costruttore di VehicleStatusLog imposta automaticamente LocalDateTime.now()
+        // registrando il momento esatto del cambio di stato
+        VehicleStatusLog log = new VehicleStatusLog(vehicle, inService, permanentlyOutOfService);
+
+        // Persisto il log nel DB — non tocco il veicolo, aggiungo solo un nuovo record
+        em.persist(log);
+
+        // Confermo la transazione
+        transaction.commit();
+
+        System.out.println("Stato del veicolo " + vehicle.getLicensePlate() + " aggiornato correttamente!");
     }
 
 }

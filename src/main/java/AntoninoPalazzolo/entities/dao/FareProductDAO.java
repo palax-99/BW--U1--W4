@@ -30,6 +30,10 @@ public class FareProductDAO {
     // ticketsAndPassesIssued(startLocalDate, endLocalDate)
     // egualmente per i soli biglietti si può utilizzare ticketsIssued e per gli abbonamenti
     // passesIssued
+    // con la stessa logica è possibile avere i dati per ogni venditore:
+    // ticketsAndPassesIssuedGroupedByIssuer
+    // ticketsIssuedGroupedByIssuer
+    // passesIssuedGroupedByIssuer
 
     public void save(FareProduct newFareproduct) {
         try {
@@ -85,6 +89,18 @@ public class FareProductDAO {
 
     public Map<String, Long> passesIssued (LocalDate startDate, LocalDate endDate){
         return entityManager.createQuery("SELECT p FROM Pass p WHERE issueDate>=:startdate AND issueDate<=:enddate", Pass.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getClass().getSimpleName(), Collectors.counting()));
+    }
+
+    public Map<String, Map<String, Long>> ticketsAndPassesIssuedGroupedByIssuer (LocalDate startDate, LocalDate endDate){
+        return entityManager.createQuery("SELECT f FROM FareProduct f WHERE issueDate>=:startdate AND issueDate<=:enddate", FareProduct.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getAuthorizedIssuer().getIssuerName(), Collectors.groupingBy(f->f.getClass().getSimpleName(), Collectors.counting())));
+    }
+
+    public Map<String, Long> ticketsIssuedGroupedByIssuer  (LocalDate startDate, LocalDate endDate){
+        return entityManager.createQuery("SELECT t FROM Ticket t WHERE issueDate>=:startdate AND issueDate<=:enddate", Ticket.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getAuthorizedIssuer().getIssuerName(), Collectors.counting()));
+    }
+
+    public Map<String, Long> passesIssuedGroupedByIssuer  (LocalDate startDate, LocalDate endDate){
+        return entityManager.createQuery("SELECT p FROM Pass p WHERE issueDate>=:startdate AND issueDate<=:enddate", Pass.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getAuthorizedIssuer().getIssuerName(), Collectors.counting()));
     }
 
     public static Boolean isThereAValidPass (EntityManager entityManager, Long userCardNumber){

@@ -24,19 +24,23 @@ public class FareProductDAO {
     }
 
     // save può essere utilizzato per salvare biglietti e abbonamenti
-    // per validare biglietti è sufficiente fare: save(ticketValidation(ticketDaDB, veicolo));
-    // per sapere se un abbonamento valido è associato ad una tessera è sufficiente fare:
+    // Per validare biglietti è sufficiente fare: save(ticketValidation(ticketDaDB, veicolo));
+    // Per sapere se un abbonamento valido è associato ad una tessera è sufficiente fare:
     // isThereAValidPass(entityManager, userCardNumber) (metodo statico)
-    // per sapere biglietti e abbonamenti emessi in un dato periodo è sufficiente fare:
+    // Per sapere biglietti e abbonamenti emessi in un dato periodo è sufficiente fare:
     // ticketsAndPassesIssued(startLocalDate, endLocalDate)
-    // egualmente per i soli biglietti si può utilizzare ticketsIssued e per gli abbonamenti
+    // Egualmente per i soli biglietti si può utilizzare ticketsIssued e per gli abbonamenti
     // passesIssued
-    // con la stessa logica è possibile avere i dati per ogni venditore:
+    // Con la stessa logica è possibile avere i dati per ogni venditore:
     // ticketsAndPassesIssuedGroupedByIssuer
     // ticketsIssuedGroupedByIssuer
     // passesIssuedGroupedByIssuer
     // È poi possibile avere il numero di biglietti validati in un periodo con ticketsValidated
     // e lo stesso numero diviso per mezzi con: ticketsValidatedGroupedByVehicle
+    // Per vedere il numero di biglietti validati su un veicolo specifico:
+    // ticketsValidatedOnAVehicle(vehicle)
+    // Infine per avere le statistiche di tutti i veicoli si può usare:
+    // ticketsValidatedOnVehicles()
 
     public void save(FareProduct newFareproduct) {
         try {
@@ -116,6 +120,10 @@ public class FareProductDAO {
 
     public Map<String, Long> ticketsValidatedOnAVehicle (Vehicle vehicle){
         return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt IS NOT NULL AND vehicle.idVehicle=:idvehicle", Ticket.class).setParameter("idvehicle", vehicle.getIdVehicle()).getResultStream().collect(Collectors.groupingBy(f->f.getVehicle().getLicensePlate(), Collectors.counting()));
+    }
+
+    public Map<String, Long> ticketsValidatedOnVehicles (){
+        return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt IS NOT NULL", Ticket.class).getResultStream().collect(Collectors.groupingBy(f->f.getVehicle().getLicensePlate(), Collectors.counting()));
     }
 
     public static Boolean isThereAValidPass (EntityManager entityManager, Long userCardNumber){

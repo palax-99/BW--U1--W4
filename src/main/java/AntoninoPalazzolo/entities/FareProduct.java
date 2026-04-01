@@ -29,6 +29,18 @@ public class FareProduct {
     protected FareProduct() {
     }
 
+    public UUID getIdFareProduct() {
+        return idFareProduct;
+    }
+
+    public LocalDateTime getIssueDate() {
+        return issueDate;
+    }
+
+    public AuthorizedIssuer getAuthorizedIssuer() {
+        return authorizedIssuer;
+    }
+
     @Override
     public String toString() {
         return "FareProduct{" +

@@ -15,6 +15,7 @@
         <class>AntoninoPalazzolo.entities.FareProduct</class>
         <class>AntoninoPalazzolo.entities.Ticket</class>
         <class>AntoninoPalazzolo.entities.Pass</class>
+
         <properties>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/buildweek"/>
             <!-- value= numero porta del database + /nomedatabase(in questo caso buildweek -->

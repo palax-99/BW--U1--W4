@@ -18,11 +18,17 @@ public class Pass extends FareProduct {
     @Column(name = "pass_expiry_date", nullable = false)
     private LocalDateTime passExpiryDate;
 
-    public Pass(LocalDateTime issueDate, AuthorizedIssuer authorizedIssuer, PassType passType, UserCard userCard, LocalDateTime passExpiryDate) {
+    public Pass(LocalDateTime issueDate, AuthorizedIssuer authorizedIssuer, PassType passType, UserCard userCard) {
         super(issueDate, authorizedIssuer);
         this.passType = passType;
         this.userCard = userCard;
-        this.passExpiryDate = passExpiryDate;
+        if (passType==PassType.WEEKLY) {
+            this.passExpiryDate = issueDate.plusWeeks(1);
+        } else if (passType==PassType.MONTHLY) {
+        this.passExpiryDate = issueDate.plusMonths(1);
+    } else if (passType==PassType.HALF_YEARLY){
+            this.passExpiryDate = issueDate.plusMonths(6);
+        }
     }
 
     protected Pass() {
@@ -48,4 +54,6 @@ public class Pass extends FareProduct {
                 ", passExpiryDate=" + passExpiryDate +
                 "} " + super.toString();
     }
+
+
 }

@@ -61,5 +61,6 @@ public class VehicleDAO {
 
         System.out.println("Stato del veicolo " + vehicle.getLicensePlate() + " aggiornato correttamente!");
     }
+    //
 
 }

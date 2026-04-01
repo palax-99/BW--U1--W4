@@ -1,5 +1,6 @@
 package AntoninoPalazzolo.entities;
 
+import AntoninoPalazzolo.exception.AvailabilityException;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,8 @@ public class FareProduct {
 
     public FareProduct(LocalDateTime issueDate, AuthorizedIssuer authorizedIssuer) {
         this.issueDate = issueDate;
+        if (authorizedIssuer instanceof VendingMachine && ((VendingMachine) authorizedIssuer).getVendingMachineAvailability()==false) {throw new AvailabilityException(authorizedIssuer);
+        }
         this.authorizedIssuer = authorizedIssuer;
     }
 

@@ -23,9 +23,6 @@ public class Ticket extends FareProduct {
     public Ticket(LocalDateTime issueDate, AuthorizedIssuer authorizedIssuer, int validityMinutes) {
         super(issueDate, authorizedIssuer);
         this.validityMinutes = validityMinutes;
-//        this.validatedAt = validatedAt;
-//        this.validUntil = validUntil;
-//        this.vehicle = vehicle;
     }
 
     public void setValidatedAt(LocalDateTime validatedAt) {

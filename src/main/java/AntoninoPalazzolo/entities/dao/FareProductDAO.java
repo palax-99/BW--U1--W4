@@ -9,7 +9,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class FareProductDAO {
     private final EntityManager entityManager;
@@ -22,6 +26,10 @@ public class FareProductDAO {
     // per validare biglietti è sufficiente fare: save(ticketValidation(ticketDaDB, veicolo));
     // per sapere se un abbonamento valido è associato ad una tessera è sufficiente fare:
     // isThereAValidPass(entityManager, userCardNumber) (metodo statico)
+    // per sapere biglietti e abbonamenti emessi in un dato periodo è sufficiente fare:
+    // ticketsAndPassesIssued(startLocalDate, endLocalDate)
+    // egualmente per i soli biglietti si può utilizzare ticketsIssued e per gli abbonamenti
+    // passesIssued
 
     public void save(FareProduct newFareproduct) {
         try {
@@ -65,6 +73,18 @@ public class FareProductDAO {
         transaction.commit();
         System.out.println("Il titolo di viaggio " + found.getIdFareProduct() + " è stato eliminato con successo!");
 
+    }
+
+    public Map<String, Long> ticketsAndPassesIssued (LocalDate startDate, LocalDate endDate){
+        return entityManager.createQuery("SELECT f FROM FareProduct f WHERE issueDate>=:startdate AND issueDate<=:enddate", FareProduct.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getClass().getSimpleName(), Collectors.counting()));
+    }
+
+    public Map<String, Long> ticketsIssued (LocalDate startDate, LocalDate endDate){
+        return entityManager.createQuery("SELECT t FROM Ticket t WHERE issueDate>=:startdate AND issueDate<=:enddate", Ticket.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getClass().getSimpleName(), Collectors.counting()));
+    }
+
+    public Map<String, Long> passesIssued (LocalDate startDate, LocalDate endDate){
+        return entityManager.createQuery("SELECT p FROM Pass p WHERE issueDate>=:startdate AND issueDate<=:enddate", Pass.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getClass().getSimpleName(), Collectors.counting()));
     }
 
     public static Boolean isThereAValidPass (EntityManager entityManager, Long userCardNumber){

@@ -30,6 +30,10 @@ public class VendingMachine extends AuthorizedIssuer {
         return vendingMachineAvailability;
     }
 
+    public boolean setVendingMachineAvailability(Boolean vendingMachineAvailability) {
+        this.vendingMachineAvailability = vendingMachineAvailability;
+    }
+
     @Override
     public String toString() {
         return "VendingMachine{" +

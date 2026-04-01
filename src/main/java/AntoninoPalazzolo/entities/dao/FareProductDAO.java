@@ -34,6 +34,8 @@ public class FareProductDAO {
     // ticketsAndPassesIssuedGroupedByIssuer
     // ticketsIssuedGroupedByIssuer
     // passesIssuedGroupedByIssuer
+    // È poi possibile avere il numero di biglietti validati in un periodo con ticketsValidated
+    // e lo stesso numero diviso per mezzi con: ticketsValidatedGroupedByVehicle
 
     public void save(FareProduct newFareproduct) {
         try {
@@ -101,6 +103,14 @@ public class FareProductDAO {
 
     public Map<String, Long> passesIssuedGroupedByIssuer  (LocalDate startDate, LocalDate endDate){
         return entityManager.createQuery("SELECT p FROM Pass p WHERE issueDate>=:startdate AND issueDate<=:enddate", Pass.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getAuthorizedIssuer().getIssuerName(), Collectors.counting()));
+    }
+
+    public Map<String, Long> ticketsValidated (LocalDate startDate, LocalDate endDate){
+        return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt>=:startdate AND issueDate<=:enddate", Ticket.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->{if (f instanceof Ticket) return "Ticket validati"; return "Altro: ";}, Collectors.counting()));
+    }
+
+    public Map<String, Long> ticketsValidatedGroupedByVehicle (LocalDate startDate, LocalDate endDate){
+        return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt>=:startdate AND issueDate<=:enddate", Ticket.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getVehicle().getLicensePlate(), Collectors.counting()));
     }
 
     public static Boolean isThereAValidPass (EntityManager entityManager, Long userCardNumber){

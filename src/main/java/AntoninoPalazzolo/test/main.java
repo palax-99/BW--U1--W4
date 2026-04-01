@@ -50,6 +50,18 @@ public class main {
         } catch (NotFoundException e) {
             System.out.println("Errore: " + e.getMessage());
         }
+
+        try {
+            // Recupero il tram dal DB
+            Vehicle trovato = vd.findById("3c7c295f-9ad3-4643-9d81-0bb9d9cdb03f");
+
+            // Stampo lo storico completo dei cambi di stato del veicolo
+            System.out.println("Storico stati del veicolo " + trovato.getLicensePlate() + ":");
+            vd.getVehicleStatusHistory(trovato).forEach(System.out::println);
+
+        } catch (NotFoundException e) {
+            System.out.println("Errore: " + e.getMessage());
+        }
         em.close();
         emf.close();
     }

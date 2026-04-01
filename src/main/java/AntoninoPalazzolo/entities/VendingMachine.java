@@ -30,7 +30,7 @@ public class VendingMachine extends AuthorizedIssuer {
         return vendingMachineAvailability;
     }
 
-    public boolean setVendingMachineAvailability(Boolean vendingMachineAvailability) {
+    public void setVendingMachineAvailability(Boolean vendingMachineAvailability) {
         this.vendingMachineAvailability = vendingMachineAvailability;
     }
 

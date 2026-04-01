@@ -56,7 +56,7 @@ public class VendingMachineDAO {
         em.getTransaction().begin();
         VendingMachine vm = em.find(VendingMachine.class, id);
         if (vm != null) {
-            vm.vendingMachineAvailability = available;
+            vm.setVendingMachineAvailability(available);
             em.merge(vm);
         }
         em.getTransaction().commit();

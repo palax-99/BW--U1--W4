@@ -1,8 +1,10 @@
 package AntoninoPalazzolo.test;
 
 import AntoninoPalazzolo.DAO.RouteDAO;
+import AntoninoPalazzolo.DAO.RunDAO;
 import AntoninoPalazzolo.DAO.VehicleDAO;
 import AntoninoPalazzolo.entities.Route;
+import AntoninoPalazzolo.entities.Run;
 import AntoninoPalazzolo.entities.Vehicle;
 import AntoninoPalazzolo.entities.VehicleType;
 import AntoninoPalazzolo.exception.NotFoundException;
@@ -18,6 +20,7 @@ public class main {
         EntityManager em = emf.createEntityManager();
         VehicleDAO vd = new VehicleDAO(em);
         RouteDAO rd = new RouteDAO(em);
+        RunDAO runDAO = new RunDAO(em);
 
         // --- CREAZIONE VEICOLI ---
         Vehicle tram1 = new Vehicle("AB 123 CD", VehicleType.TRAM);
@@ -84,6 +87,23 @@ public class main {
         } catch (NotFoundException e) {
             System.out.println("Errore: " + e.getMessage());
         }
+        try {
+            // Recupero veicolo e tratta già esistenti nel DB
+            Vehicle trovato = vd.findById("3c7c295f-9ad3-4643-9d81-0bb9d9cdb03f");
+            Route tratta = rd.findById("149df989-6fae-4327-91a8-6c3fa6d080bd");
+
+            // Creo e salvo una corsa
+            Run corsa = new Run(trovato, tratta, LocalTime.of(8, 0), LocalTime.of(8, 20));
+            //runDAO.saveRun(corsa);
+
+            // Stampo tutte le corse
+            runDAO.findAll().forEach(System.out::println);
+
+        } catch (NotFoundException e) {
+            System.out.println("Errore: " + e.getMessage());
+        }
+
+
         em.close();
         emf.close();
     }

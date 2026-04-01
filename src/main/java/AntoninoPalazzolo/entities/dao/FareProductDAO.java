@@ -3,6 +3,7 @@ package AntoninoPalazzolo.entities.dao;
 import AntoninoPalazzolo.entities.FareProduct;
 import AntoninoPalazzolo.entities.Pass;
 import AntoninoPalazzolo.entities.Ticket;
+import AntoninoPalazzolo.entities.Vehicle;
 import AntoninoPalazzolo.exception.NotFoundException;
 import AntoninoPalazzolo.exception.NotSavedException;
 import jakarta.persistence.EntityManager;
@@ -106,11 +107,15 @@ public class FareProductDAO {
     }
 
     public Map<String, Long> ticketsValidated (LocalDate startDate, LocalDate endDate){
-        return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt>=:startdate AND issueDate<=:enddate", Ticket.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->{if (f instanceof Ticket) return "Ticket validati"; return "Altro: ";}, Collectors.counting()));
+        return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt>=:startdate AND validatedAt<=:enddate", Ticket.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->{if (f instanceof Ticket) return "Ticket validati"; return "Altro: ";}, Collectors.counting()));
     }
 
     public Map<String, Long> ticketsValidatedGroupedByVehicle (LocalDate startDate, LocalDate endDate){
-        return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt>=:startdate AND issueDate<=:enddate", Ticket.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getVehicle().getLicensePlate(), Collectors.counting()));
+        return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt>=:startdate AND validatedAt<=:enddate", Ticket.class).setParameter("startdate", startDate.atStartOfDay()).setParameter("enddate", endDate.plusDays(1).atStartOfDay()).getResultStream().collect(Collectors.groupingBy(f->f.getVehicle().getLicensePlate(), Collectors.counting()));
+    }
+
+    public Map<String, Long> ticketsValidatedOnAVehicle (Vehicle vehicle){
+        return entityManager.createQuery("SELECT t FROM Ticket t WHERE validatedAt IS NOT NULL AND vehicle.idVehicle=:idvehicle", Ticket.class).setParameter("idvehicle", vehicle.getIdVehicle()).getResultStream().collect(Collectors.groupingBy(f->f.getVehicle().getLicensePlate(), Collectors.counting()));
     }
 
     public static Boolean isThereAValidPass (EntityManager entityManager, Long userCardNumber){

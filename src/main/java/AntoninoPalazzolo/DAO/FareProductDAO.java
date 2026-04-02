@@ -54,6 +54,17 @@ public class FareProductDAO {
 
     }
 
+    public void update(FareProduct fareProduct) {
+        EntityTransaction transaction = this.entityManager.getTransaction();
+        try {
+            transaction.begin();
+            entityManager.merge(fareProduct);
+            transaction.commit();
+        } catch (Exception e) {
+            throw new NotSavedException(fareProduct);
+        }
+    }
+
     public FareProduct getById(UUID idFareProduct) {
         FareProduct found = entityManager.find(FareProduct.class, idFareProduct);
         if (found == null) throw new NotFoundException(idFareProduct.toString());

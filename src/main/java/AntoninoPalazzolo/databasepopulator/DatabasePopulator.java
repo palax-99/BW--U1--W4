@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
+import static AntoninoPalazzolo.entities.Ticket.ticketValidation;
 
 
 public class DatabasePopulator {
@@ -32,14 +33,17 @@ public class DatabasePopulator {
         authorizedIssuersGenerator(10,5);
         vehiclesGenerator(40);
         vehicleStatusLogGenerator(10);
+        ticketsAndPassesGenerator(1500, 200);
     }
 
-    public static void populate(int numberOfUsers, int numberOfVendingMachines, int numberOfResellers, int numberOfVehicles, int maxNumberOfLogPerVehicle){
+    public static void populate(int numberOfUsers, int numberOfVendingMachines, int numberOfResellers, int numberOfVehicles, int maxNumberOfLogPerVehicle,
+                                int numberOfTickets, int numberOfPasses){
         usersGenerator(numberOfUsers);
         userCardsGenerator();
         authorizedIssuersGenerator(numberOfVendingMachines, numberOfResellers);
         vehiclesGenerator(numberOfVehicles);
         vehicleStatusLogGenerator(maxNumberOfLogPerVehicle);
+        ticketsAndPassesGenerator(numberOfTickets, numberOfPasses);
     }
 
     private static void usersGenerator(int numberOfUsers) {
@@ -318,5 +322,77 @@ public class DatabasePopulator {
             }
 
         }
+    }
+    private static void ticketsAndPassesGenerator(int numberOfTickets, int numberOfPasses){
+        EntityManager entityManager = emf.createEntityManager();
+        FareProductDAO fareProductDAO = new FareProductDAO(entityManager);
+                List<AuthorizedIssuer> authorizedIssuersAvailable = entityManager.createQuery("SELECT a FROM AuthorizedIssuer a WHERE a NOT IN (SELECT vm FROM VendingMachine vm WHERE vm.vendingMachineAvailability=FALSE)", AuthorizedIssuer.class).getResultList();
+        if (authorizedIssuersAvailable.isEmpty()) {
+            throw new IllegalStateException("Nessun AuthorizedIssuer disponibile");
+        }
+        int[] minutes = {30, 60, 90, 300, 1440};
+        Random random = new Random();
+        ZoneId rome = ZoneId.of("Europe/Rome");
+        LocalDateTime end = LocalDateTime.now(rome);
+        LocalDateTime start = end.minusYears(2);
+        long startMillis = start.atZone(rome).toInstant().toEpochMilli();
+        long endMillis = end.atZone(rome).toInstant().toEpochMilli();
+
+        for (int i = 0; i < numberOfTickets; i++) {
+
+            long randomMillis = random.longs(1, startMillis, endMillis).findFirst().getAsLong();
+            LocalDateTime issueDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(randomMillis), rome);
+            AuthorizedIssuer authorizedIssuer = authorizedIssuersAvailable.get(random.nextInt(authorizedIssuersAvailable.size()));
+            int validityMinutes = minutes[random.nextInt(minutes.length)];
+
+            Ticket ticket = new Ticket(issueDate, authorizedIssuer, validityMinutes);
+
+            try {
+                fareProductDAO.save(ticket);
+            } catch (RuntimeException e) {
+                System.out.println("Ticket n. "+i+" non salvato");
+                continue;
+            }
+
+            if (random.nextBoolean()){
+                long randomMillisForValidation = random.longs(1, randomMillis, endMillis).findFirst().getAsLong();
+                LocalDateTime validatedAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(randomMillisForValidation), rome);
+                List<Vehicle> vehicles = entityManager.createQuery("SELECT v FROM Vehicle v WHERE EXISTS (SELECT 1 FROM VehicleStatusLog vs WHERE vs.vehicle=v AND vs.vehicleAvailabilityUpdatedOn=(SELECT MAX(vs2.vehicleAvailabilityUpdatedOn) FROM VehicleStatusLog vs2 WHERE vs2.vehicle=v AND vs2.vehicleAvailabilityUpdatedOn <= :validatedAt) AND vs.vehicleInService = TRUE)", Vehicle.class).setParameter("validatedAt", validatedAt).getResultList();
+                if (vehicles.isEmpty()) {
+                    System.out.println("Nessun veicolo disponibile per l'obliterazione");
+                    continue;
+                }
+                Vehicle vehicle = vehicles.get(random.nextInt(vehicles.size()));
+                fareProductDAO.update(ticketValidation(ticket, validatedAt,vehicle));
+
+
+            }
+
+
+
+        }
+
+        for (int i = 0; i < numberOfPasses; i++) {
+            long randomMillis = random.longs(1, startMillis, endMillis).findFirst().getAsLong();
+            LocalDateTime issueDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(randomMillis), rome);
+            AuthorizedIssuer authorizedIssuer = authorizedIssuersAvailable.get(random.nextInt(authorizedIssuersAvailable.size()));
+            PassType passType = PassType.values()[random.nextInt(PassType.values().length)];
+            List<UserCard> activeUserCards = entityManager.createQuery("SELECT u FROM UserCard u WHERE u.cardActivationDate<=:issueDate AND u.cardExpiryDate>=:issueDate", UserCard.class).setParameter("issueDate", issueDate).getResultList();
+            if (activeUserCards.isEmpty()) {
+                System.out.println("Nessuna UserCard attiva per la data " + issueDate);
+                continue;
+            }
+            UserCard userCard = activeUserCards.get(random.nextInt(activeUserCards.size()));
+
+            Pass pass = new Pass(issueDate, authorizedIssuer, passType, userCard);
+
+            try {
+                fareProductDAO.save(pass);
+            } catch (RuntimeException e) {
+                System.out.println("L'abbonamento n. "+i+" non è stato salvato");
+            }
+
+        }
+
     }
 }

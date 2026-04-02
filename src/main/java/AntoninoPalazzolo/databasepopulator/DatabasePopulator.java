@@ -35,16 +35,19 @@ public class DatabasePopulator {
         vehicleStatusLogGenerator(10);
         ticketsAndPassesGenerator(100, 20);
         routesGenerator(20);
+        runsGenerator(500);
     }
 
     public static void populate(int numberOfUsers, int numberOfVendingMachines, int numberOfResellers, int numberOfVehicles, int maxNumberOfLogPerVehicle,
-                                int numberOfTickets, int numberOfPasses){
+                                int numberOfTickets, int numberOfPasses, int numberOfRoutes, int numberOfRuns){
         usersGenerator(numberOfUsers);
         userCardsGenerator();
         authorizedIssuersGenerator(numberOfVendingMachines, numberOfResellers);
         vehiclesGenerator(numberOfVehicles);
         vehicleStatusLogGenerator(maxNumberOfLogPerVehicle);
         ticketsAndPassesGenerator(numberOfTickets, numberOfPasses);
+        routesGenerator(numberOfRoutes);
+        runsGenerator(numberOfRuns);
     }
 
     private static void usersGenerator(int numberOfUsers) {
@@ -233,9 +236,9 @@ public class DatabasePopulator {
         Random random = new Random();
 
         for (int i=0; i<numberOfVendingMachines; i++){
-            String issuerName= SPEED[random.nextInt(SPEED.length)]+SERVICE[random.nextInt(SERVICE.length)]+" "+TRAVEL[random.nextInt(TRAVEL.length)];
+            String issuerName= SPEED[random.nextInt(SPEED.length)]+SERVICE[random.nextInt(SERVICE.length)]+" "+TRAVEL[random.nextInt(TRAVEL.length)]+" "+random.nextInt(2000);
             String issuerAddress =  STREET_TYPE[random.nextInt(STREET_TYPE.length)]+" "+STREET_NAME[random.nextInt(STREET_NAME.length)]+", "+random.nextInt(200)+" - "+CITY;
-            String serialNumber = String.valueOf(random.nextLong());
+            String serialNumber = String.valueOf(Math.abs(random.nextLong()));
             Boolean vendingMachineAvailability= random.nextBoolean();
             VendingMachine vendingMachine = new VendingMachine(issuerName, issuerAddress, serialNumber, vendingMachineAvailability);
 
@@ -248,7 +251,7 @@ public class DatabasePopulator {
 
         }
         for (int i=0; i<numberOfResellers; i++){
-            String issuerName= SPEED[random.nextInt(SPEED.length)]+SERVICE[random.nextInt(SERVICE.length)]+" "+SHOP[random.nextInt(SHOP.length)];
+            String issuerName= SPEED[random.nextInt(SPEED.length)]+SERVICE[random.nextInt(SERVICE.length)]+" "+SHOP[random.nextInt(SHOP.length)]+" "+random.nextInt(2000);
             String issuerAddress =  STREET_TYPE[random.nextInt(STREET_TYPE.length)]+" "+STREET_NAME[random.nextInt(STREET_NAME.length)]+", "+random.nextInt(200)+" - Roma";
             String vatNumber = "IT"+(random.nextLong((99999999999L-10000000000L)+1)+10000000000L);
             Reseller reseller= new Reseller(issuerName, issuerAddress, vatNumber);
@@ -444,7 +447,47 @@ public class DatabasePopulator {
             }
         }
 
+    }
+
+    private static void runsGenerator(int numberOfRuns){
+        EntityManager entityManager = emf.createEntityManager();
+        RunDAO runDAO = new RunDAO(entityManager);
+        LocalDate end =LocalDate.now();
+        LocalDate start = end.minusYears(2);
+        long endDay = end.toEpochDay();
+        long startDay = start.toEpochDay();
+        Random random = new Random();
+
+        List<Route> routes = entityManager.createQuery("SELECT r FROM Route r", Route.class).getResultList();
+
+        for (int i = 0; i < numberOfRuns; i++) {
+
+            LocalDate date = LocalDate.ofEpochDay(startDay+random.nextLong(endDay-startDay));
+            Route route = routes.get(random.nextInt(routes.size()));
+            int plusMinus = 25;
+            LocalDateTime actualDepartureTime= LocalDateTime.of(date, route.getScheduledDepartureTime()).plusMinutes(plusMinus- random.nextInt(plusMinus*2+1));
+            int actualTravelTime= (int) Math.round(route.getTravelTimeMinutes()*(random.nextDouble(0.75, 1.25)));
+            LocalDateTime actualArrivalTime = actualDepartureTime.plusMinutes(actualTravelTime);
+            List<Vehicle> vehicles = entityManager.createQuery("SELECT v FROM Vehicle v WHERE EXISTS (SELECT 1 FROM VehicleStatusLog vs WHERE vs.vehicle=v AND vs.vehicleAvailabilityUpdatedOn=(SELECT MAX(vs2.vehicleAvailabilityUpdatedOn) FROM VehicleStatusLog vs2 WHERE vs2.vehicle=v AND vs2.vehicleAvailabilityUpdatedOn <= :date) AND vs.vehicleInService = TRUE)", Vehicle.class).setParameter("date", actualArrivalTime).getResultList();
+
+            if (vehicles.isEmpty()) {
+                System.out.println("Nessun veicolo disponibile per l'obliterazione");
+                continue;
+            }
+
+            Vehicle vehicle = vehicles.get(random.nextInt(vehicles.size()));
+
+            Run run = new Run(vehicle, route, actualDepartureTime, actualTravelTime);
+
+           try {
+                runDAO.saveRun(run);
+            } catch (RuntimeException e) {
+               System.out.println("Corsa n. "+ i +" non salvata");
+           }
+
+
+        }
 
 
     }
-}
+ }

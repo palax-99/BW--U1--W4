@@ -3,6 +3,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
+/src/main/java/AntoninoPalazzolo/entities/dao/FareProductDAOTest.java
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

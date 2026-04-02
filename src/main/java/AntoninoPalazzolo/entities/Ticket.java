@@ -20,11 +20,20 @@ public class Ticket extends FareProduct {
     @JoinColumn(name = "validated_on_vehicle")
     private Vehicle vehicle;
 
-    public Ticket(LocalDateTime issueDate, AuthorizedIssuer authorizedIssuer, int validityMinutes, LocalDateTime validatedAt, LocalDateTime validUntil, Vehicle vehicle) {
+    public Ticket(LocalDateTime issueDate, AuthorizedIssuer authorizedIssuer, int validityMinutes) {
         super(issueDate, authorizedIssuer);
         this.validityMinutes = validityMinutes;
+    }
+
+    public void setValidatedAt(LocalDateTime validatedAt) {
         this.validatedAt = validatedAt;
+    }
+
+    public void setValidUntil(LocalDateTime validUntil) {
         this.validUntil = validUntil;
+    }
+
+    public void setVehicle(Vehicle vehicle) {
         this.vehicle = vehicle;
     }
 
@@ -55,5 +64,12 @@ public class Ticket extends FareProduct {
                 ", validUntil=" + validUntil +
                 ", vehicle=" + vehicle +
                 "} " + super.toString();
+    }
+
+    public static Ticket ticketValidation(Ticket ticket, Vehicle vehicle ){
+        ticket.setValidatedAt(LocalDateTime.now());
+        ticket.setValidUntil(LocalDateTime.now().plusMinutes(ticket.getValidityMinutes()));
+        ticket.setVehicle(vehicle);
+        return ticket;
     }
 }

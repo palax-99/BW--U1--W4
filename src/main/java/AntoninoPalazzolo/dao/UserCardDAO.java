@@ -1,4 +1,4 @@
-package AntoninoPalazzolo.dao;
+package AntoninoPalazzolo.DAO;
 
 import AntoninoPalazzolo.entities.User;
 import AntoninoPalazzolo.entities.UserCard;
@@ -25,7 +25,7 @@ public class UserCardDAO {
     }
 
     //Metodo per generare numero tessera
-    private long generateCardNumber(){
+    public long generateCardNumber(){
         long cardNumber;
 
         // crea un numero randomico a 8 cifre e lo rifà fintanto che il cardNumber esiste già. Quando non lo trova già nel DB, esce.

@@ -28,6 +28,8 @@ public class DatabasePopulator {
         usersGenerator(30);
         userCardsGenerator();
         authorizedIssuersGenerator(10,5);
+        vehiclesGenerator(40);
+        vehicleStatusLogGenerator();
     }
 
     public static void populate(int numberOfUsers, int numberOfVendingMachines, int numberOfResellers){
@@ -246,6 +248,51 @@ public class DatabasePopulator {
             } catch (RuntimeException e) {
                 System.out.println("Distributore n. "+i+" non salvato. "+e);
             }
+        }
+    }
+    private static void vehiclesGenerator(int numberOfVehicles){
+        EntityManager entityManager = emf.createEntityManager();
+        VehicleDAO vehicleDAO = new VehicleDAO(entityManager);
+        Random random = new Random();
+        char[] lettere = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+
+        for (int i = 0; i<numberOfVehicles; i++){
+                String licensePlate = ""+lettere[random.nextInt(lettere.length)]+lettere[random.nextInt(lettere.length)]+ random.nextInt(10)+ random.nextInt(10)+ random.nextInt(10)+lettere[random.nextInt(lettere.length)]+lettere[random.nextInt(lettere.length)];
+                VehicleType vehicleType= VehicleType.values()[random.nextInt(VehicleType.values().length)];
+                Vehicle vehicle=new Vehicle(licensePlate, vehicleType);
+
+                try {
+
+                    vehicleDAO.saveVehicle(vehicle);
+
+                } catch (RuntimeException e) {
+                    System.out.println("Veicolo "+i+" non salvato");
+                }
+
+        }
+    }
+
+    private static void vehicleStatusLogGenerator(){
+        EntityManager entityManager = emf.createEntityManager();
+        List<Vehicle> vehicleWithoutStatus = entityManager.createQuery("SELECT v FROM Vehicle v WHERE NOT EXISTS (SELECT vs FROM VehicleStatusLog vs WHERE vs.vehicle = v)", Vehicle.class).getResultList();
+        VehicleDAO vehicleDAO = new VehicleDAO(entityManager);
+        Random random = new Random();
+
+        for (int i = 0; i < vehicleWithoutStatus.size(); i++) {
+            int numberOfLogs = random.nextInt(9)+1;
+            boolean vehicleInService = random.nextBoolean();
+            for (int j = 0; j < numberOfLogs; j++) {
+
+                try {
+                    vehicleDAO.updateVehicleStatus(vehicleWithoutStatus.get(i), vehicleInService, false);
+                } catch (RuntimeException e) {
+                    System.out.println("Registro di manutenzione di "+vehicleWithoutStatus.get(i).getLicensePlate()+" non salvato");
+                }
+
+                vehicleInService= !vehicleInService;
+            }
+
         }
     }
 }

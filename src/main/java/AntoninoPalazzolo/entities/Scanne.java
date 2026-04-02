@@ -1,7 +1,7 @@
 package AntoninoPalazzolo.entities;
 
 import AntoninoPalazzolo.DAO.*;
-import AntoninoPalazzolo.entities.dao.FareProductDAO;
+import AntoninoPalazzolo.DAO.FareProductDAO;
 import AntoninoPalazzolo.exception.NotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;

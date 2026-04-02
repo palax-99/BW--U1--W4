@@ -2,6 +2,7 @@ package AntoninoPalazzolo.entities;
 
 import jakarta.persistence.*;
 
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -30,13 +31,13 @@ public class Run {
     @Column(name = "actual_travel_time")
     private int actualTravelTime;
 
-    public Run(UUID idRun, Vehicle vehicle, Route route, LocalTime actualDepartureTime, LocalTime actualArrivalTime, int actualTravelTime) {
-        this.idRun = idRun;
+    public Run(Vehicle vehicle, Route route, LocalTime actualDepartureTime, LocalTime actualArrivalTime) {
         this.vehicle = vehicle;
         this.route = route;
         this.actualDepartureTime = actualDepartureTime;
         this.actualArrivalTime = actualArrivalTime;
-        this.actualTravelTime = actualTravelTime;
+        // Calcolo automaticamente la durata in minuti dalla differenza tra arrivo e partenza
+        this.actualTravelTime = (int) Duration.between(actualDepartureTime, actualArrivalTime).toMinutes();
     }
 
     protected Run() {

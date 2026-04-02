@@ -1,4 +1,4 @@
-package AntoninoPalazzolo.entities.dao;
+package AntoninoPalazzolo.dao;
 import AntoninoPalazzolo.entities.AuthorizedIssuer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;

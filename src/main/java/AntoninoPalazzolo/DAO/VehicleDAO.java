@@ -61,6 +61,16 @@ public class VehicleDAO {
 
         System.out.println("Stato del veicolo " + vehicle.getLicensePlate() + " aggiornato correttamente!");
     }
-    //
+
+    // Recupero lo storico completo dei cambi di stato di un veicolo
+    // ordinato per data — dal più vecchio al più recente
+    public List<VehicleStatusLog> getVehicleStatusHistory(Vehicle vehicle) {
+        TypedQuery<VehicleStatusLog> query = em.createQuery(
+                "SELECT v FROM VehicleStatusLog v WHERE v.vehicle = :vehicle ORDER BY v.vehicleAvailabilityUpdatedOn ASC",
+                VehicleStatusLog.class
+        );
+        query.setParameter("vehicle", vehicle);
+        return query.getResultList();
+    }
 
 }

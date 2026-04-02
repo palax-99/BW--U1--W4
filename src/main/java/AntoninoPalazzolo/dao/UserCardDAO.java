@@ -9,6 +9,7 @@ import jakarta.persistence.TypedQuery;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class UserCardDAO {
@@ -72,7 +73,7 @@ public class UserCardDAO {
             throw new IllegalArgumentException("L'utente scelto ha già una tessera collegata!");
         }
 
-        //Metodo privato per generare un numero tessera randomico
+        //Richiamo metodo per generare un numero tessera randomico
         long cardNumber = generateCardNumber();
         //crea nuova carta con il numero tessera generato, la data attuale e l'user corrispondente all'ID scelto all'inizio
         UserCard newCard = new UserCard(cardNumber, LocalDateTime.now(), user);
@@ -82,7 +83,51 @@ public class UserCardDAO {
         transaction.begin();
         em.persist(newCard);
         transaction.commit();
+    }
 
+    public void renewCard (long cardNumber) {
+        UserCard userCard = findByCardNumber(cardNumber);
+        if (userCard == null){throw new IllegalArgumentException("Tessera non trovata!");}
+        LocalDateTime now = LocalDateTime.now();
+        EntityTransaction transaction = em.getTransaction();
+
+        transaction.begin();
+        //Aggiorna ad ora la data di attivazione della carta, dopo aver controllato che la carta esiste già
+        userCard.setCardActivationDate(now);
+
+        //Se la tessera è ancora valida, viene aggiunto un anno alla scadenza
+        if (userCard.getCardExpiryDate() != null && userCard.getCardExpiryDate().isAfter(now)){
+            userCard.setCardExpiryDate(userCard.getCardExpiryDate().plusYears(1));
+        // Se è scaduta già, imposta la scadenza a un anno dalla data attuale
+        }else {
+            userCard.setCardExpiryDate(now.plusYears(1));
+        }
+        transaction.commit();
+    }
+
+    public boolean isCardValid (long cardNumber) {
+        UserCard userCard = findByCardNumber(cardNumber);
+        if (userCard == null) {
+            throw new IllegalArgumentException("Tessera non trovata!");
+        }
+        LocalDateTime expiryDate = userCard.getCardExpiryDate();
+        LocalDateTime now = LocalDateTime.now();
+
+        //Se la scadenza è null, viene valutata come non valida
+        if (expiryDate == null) {
+            return false;
+        }
+        //isAfter ritorna true se la data di scadenza è dopo la data specificata (ora), false in caso contrario
+        //quindi sarà ciò che ritorna il metodo
+        return expiryDate.isAfter(now);
+    }
+
+    //Metodo che ritorna tutte le tessere scadute
+    public List<UserCard> findExpiredCards() {
+        TypedQuery<UserCard> query = em.createQuery("SELECT uc FROM UserCard uc WHERE uc.cardExpiryDate < :now", UserCard.class);
+        query.setParameter("now", LocalDateTime.now());
+
+        return query.getResultList();
     }
 
 

@@ -67,6 +67,14 @@ public class UserCard {
         return cardExpiryDate;
     }
 
+    public void setCardActivationDate(LocalDateTime cardActivationDate) {
+        this.cardActivationDate = cardActivationDate;
+    }
+
+    public void setCardExpiryDate(LocalDateTime cardExpiryDate) {
+        this.cardExpiryDate = cardExpiryDate;
+    }
+
     @Override
     public String toString() {
         return "UserCard{" +

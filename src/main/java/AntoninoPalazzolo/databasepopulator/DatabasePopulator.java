@@ -8,6 +8,8 @@ import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
 
 import java.time.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -16,11 +18,11 @@ import java.util.Random;
 public class DatabasePopulator {
     private static final EntityManagerFactory emf = Persistence.createEntityManagerFactory("bwu1w4");
 
-    private void save(UserCard userCard){
+    private void save(Object obj){
         EntityManager entityManager = emf.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        entityManager.persist(userCard);
+        entityManager.persist(obj);
         transaction.commit();
     }
 
@@ -29,13 +31,15 @@ public class DatabasePopulator {
         userCardsGenerator();
         authorizedIssuersGenerator(10,5);
         vehiclesGenerator(40);
-        vehicleStatusLogGenerator();
+        vehicleStatusLogGenerator(10);
     }
 
-    public static void populate(int numberOfUsers, int numberOfVendingMachines, int numberOfResellers){
+    public static void populate(int numberOfUsers, int numberOfVendingMachines, int numberOfResellers, int numberOfVehicles, int maxNumberOfLogPerVehicle){
         usersGenerator(numberOfUsers);
         userCardsGenerator();
         authorizedIssuersGenerator(numberOfVendingMachines, numberOfResellers);
+        vehiclesGenerator(numberOfVehicles);
+        vehicleStatusLogGenerator(maxNumberOfLogPerVehicle);
     }
 
     private static void usersGenerator(int numberOfUsers) {
@@ -273,19 +277,39 @@ public class DatabasePopulator {
         }
     }
 
-    private static void vehicleStatusLogGenerator(){
+    private static void vehicleStatusLogGenerator(int maxNumberOfLogPerVehicle){
         EntityManager entityManager = emf.createEntityManager();
         List<Vehicle> vehicleWithoutStatus = entityManager.createQuery("SELECT v FROM Vehicle v WHERE NOT EXISTS (SELECT vs FROM VehicleStatusLog vs WHERE vs.vehicle = v)", Vehicle.class).getResultList();
         VehicleDAO vehicleDAO = new VehicleDAO(entityManager);
+        DatabasePopulator populator = new DatabasePopulator();
         Random random = new Random();
+        ZoneId rome = ZoneId.of("Europe/Rome");
+        LocalDateTime end = LocalDateTime.now(rome);
+        LocalDateTime start = end.minusYears(2);
+        long startMillis = start.atZone(rome).toInstant().toEpochMilli();
+        long endMillis = end.atZone(rome).toInstant().toEpochMilli();
+
+
 
         for (int i = 0; i < vehicleWithoutStatus.size(); i++) {
-            int numberOfLogs = random.nextInt(9)+1;
+            int numberOfLogs = random.nextInt(maxNumberOfLogPerVehicle)+1;
             boolean vehicleInService = random.nextBoolean();
+            List<LocalDateTime> randomTime=new ArrayList<>();
+
+
             for (int j = 0; j < numberOfLogs; j++) {
+                long randomMillis = random.longs(1, startMillis, endMillis).findFirst().getAsLong();
+                randomTime.add(LocalDateTime.ofInstant(Instant.ofEpochMilli(randomMillis), rome));
+            }
+
+            randomTime.sort(Comparator.naturalOrder());
+
+
+            for (int j = 0; j < numberOfLogs; j++) {
+                VehicleStatusLog vehicleStatusLog = new VehicleStatusLog(vehicleWithoutStatus.get(i),randomTime.get(j),vehicleInService);
 
                 try {
-                    vehicleDAO.updateVehicleStatus(vehicleWithoutStatus.get(i), vehicleInService, false);
+                    populator.save(vehicleStatusLog);
                 } catch (RuntimeException e) {
                     System.out.println("Registro di manutenzione di "+vehicleWithoutStatus.get(i).getLicensePlate()+" non salvato");
                 }

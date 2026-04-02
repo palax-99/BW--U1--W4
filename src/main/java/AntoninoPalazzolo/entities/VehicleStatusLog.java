@@ -61,6 +61,12 @@ public class VehicleStatusLog {
         // della creazione del log
     }
 
+    public VehicleStatusLog(Vehicle vehicle, LocalDateTime vehicleAvailabilityUpdatedOn, boolean vehicleInService) {
+        this.vehicle = vehicle;
+        this.vehicleAvailabilityUpdatedOn = vehicleAvailabilityUpdatedOn;
+        this.vehicleInService = vehicleInService;
+    }
+
     public UUID getIdVehicleStatusLog() {
         return idVehicleStatusLog;
     }

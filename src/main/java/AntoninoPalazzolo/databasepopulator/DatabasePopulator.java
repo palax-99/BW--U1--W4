@@ -33,7 +33,8 @@ public class DatabasePopulator {
         authorizedIssuersGenerator(10,5);
         vehiclesGenerator(40);
         vehicleStatusLogGenerator(10);
-        ticketsAndPassesGenerator(1500, 200);
+        ticketsAndPassesGenerator(100, 20);
+        routesGenerator(20);
     }
 
     public static void populate(int numberOfUsers, int numberOfVendingMachines, int numberOfResellers, int numberOfVehicles, int maxNumberOfLogPerVehicle,
@@ -233,7 +234,7 @@ public class DatabasePopulator {
 
         for (int i=0; i<numberOfVendingMachines; i++){
             String issuerName= SPEED[random.nextInt(SPEED.length)]+SERVICE[random.nextInt(SERVICE.length)]+" "+TRAVEL[random.nextInt(TRAVEL.length)];
-            String issuerAddress =  STREET_TYPE[random.nextInt(STREET_TYPE.length)]+" "+STREET_NAME[random.nextInt(STREET_NAME.length)]+", "+random.nextInt(200)+" - Roma";
+            String issuerAddress =  STREET_TYPE[random.nextInt(STREET_TYPE.length)]+" "+STREET_NAME[random.nextInt(STREET_NAME.length)]+", "+random.nextInt(200)+" - "+CITY;
             String serialNumber = String.valueOf(random.nextLong());
             Boolean vendingMachineAvailability= random.nextBoolean();
             VendingMachine vendingMachine = new VendingMachine(issuerName, issuerAddress, serialNumber, vendingMachineAvailability);
@@ -393,6 +394,57 @@ public class DatabasePopulator {
             }
 
         }
+
+    }
+    private static void routesGenerator(int numberOfRoutes){
+        EntityManager entityManager = emf.createEntityManager();
+        RouteDAO routeDAO = new RouteDAO(entityManager);
+
+        Random random = new Random();
+        String[] STREET_NAME = {"Roma", "Milano", "Torino", "Napoli", "Verona",
+                "Firenze", "Bologna", "Genova", "Venezia", "Palermo",
+                "Dante", "Verdi", "Manzoni", "Leopardi", "Carducci",
+                "Pascoli", "Foscolo", "Ariosto", "Petrarca", "Boccaccio",
+                "Garibaldi", "Mazzini", "Cavour", "Marconi", "Battisti",
+                "Colombo", "Kennedy", "Matteotti", "De Gasperi", "Rossini",
+                "Europa", "Liberta", "Repubblica", "Unita", "Indipendenza",
+                "Pace", "Speranza", "Progresso", "Lavoro", "Giustizia",
+                "Stazione", "Mercato", "Castello", "Duomo", "Municipio",
+                "Porto", "Borgo", "Centro", "Giardino", "Parco",
+                "Lago", "Monte", "Colle", "Fiume", "Ponte",
+                "Sole", "Luna", "Stella", "Aurora", "Tramonto",
+                "Primavera", "Estate", "Autunno", "Inverno", "Alba",
+                "Rose", "Tulipani", "Violette", "Girasoli", "Orchidee",
+                "Tigli", "Pini", "Platani", "Olmi", "Cipressi",
+                "Cedri", "Magnolie", "Acacie", "Betulle", "Allori",
+                "Artigiani", "Commercianti", "Viaggiatori", "Naviganti", "Poeti",
+                "Pittori", "Musicisti", "Scultori", "Medici", "Maestri",
+                "della Pace", "della Liberta", "della Repubblica", "della Stazione", "del Mercato",
+                "del Sole", "della Luna", "delle Stelle", "dell'Alba", "del Tramonto",
+                "del Parco", "del Lago", "del Monte", "del Ponte", "del Porto",
+                "dei Tigli", "dei Pini", "dei Platani", "delle Rose", "delle Violette",
+                "dei Gelsi", "dei Cedri", "delle Acacie", "dei Giardini", "dei Colli",
+                "San Marco", "San Paolo", "San Pietro", "San Luca", "Santa Lucia",
+                "Santa Chiara", "Santa Maria", "San Giovanni", "San Michele", "San Francesco"};
+
+        String[] STREET_TYPE = {"Via", "Viale", "Piazza", "Corso", "Largo", "Piazzale"};
+
+        String CITY = "Roma";
+
+        for (int i = 0; i < numberOfRoutes; i++) {
+            String departure =  STREET_TYPE[random.nextInt(STREET_TYPE.length)]+" "+STREET_NAME[random.nextInt(STREET_NAME.length)]+", "+random.nextInt(200)+" - "+CITY;
+            String terminus =  STREET_TYPE[random.nextInt(STREET_TYPE.length)]+" "+STREET_NAME[random.nextInt(STREET_NAME.length)]+", "+random.nextInt(200)+" - "+CITY;
+            int travelTimeMinutes = random.nextInt(10, 200);
+            LocalTime scheduledDepartureTime = LocalTime.of(random.nextInt(24), random.nextInt(60), 0);
+            Route route = new Route(departure, terminus, travelTimeMinutes, scheduledDepartureTime);
+            try {
+                routeDAO.saveRoute(route);
+            } catch (RuntimeException e){
+                System.out.println("Errore nel salvataggio della tratta");
+            }
+        }
+
+
 
     }
 }

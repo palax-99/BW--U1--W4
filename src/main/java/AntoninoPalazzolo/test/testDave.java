@@ -23,18 +23,20 @@ public class testDave {
             userDAO.save(user1);
             System.out.println("Utente " + user1.getUserName() + " " + user1.getUserSurname() + " salvato con successo!");
 
-            // cercarlo tramite email
+            // Ricerca Utente tramite email
             User foundUser = userDAO.findByEmail("ugosacco@gmail.com");
             System.out.println("Utente " + foundUser.getUserSurname() + " trovato con email: " + foundUser.getUserEmail());
 
-
+            // Emissione tessera
             userCardDAO.issueCardToUser(foundUser.getIdUser());
             System.out.println("Tessera emessa all'utente " + foundUser.getUserName());
 
+            // Controllo della validità della tessera
             long cardNumber = userCardDAO.findByUserId(foundUser.getIdUser()).getUserCardNumber();
             boolean isValid = userCardDAO.isCardValid(cardNumber);
             System.out.println("La tessera è valida? " + isValid);
 
+            //Rinnovo tessera
             userCardDAO.renewCard(cardNumber);
             System.out.println("Tessera rinnovata!");
             System.out.println(userCardDAO.findByCardNumber(cardNumber));

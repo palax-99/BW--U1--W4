@@ -27,11 +27,13 @@ public class DatabasePopulator {
     public static void populate(){
         usersGenerator(30);
         userCardsGenerator();
+        authorizedIssuersGenerator(10,5);
     }
 
-    public static void populate(int numberOfUsers){
+    public static void populate(int numberOfUsers, int numberOfVendingMachines, int numberOfResellers){
         usersGenerator(numberOfUsers);
         userCardsGenerator();
+        authorizedIssuersGenerator(numberOfVendingMachines, numberOfResellers);
     }
 
     private static void usersGenerator(int numberOfUsers) {
@@ -131,7 +133,6 @@ public class DatabasePopulator {
        Random random = new Random();
        for (int i = 0; i<numberOfUsers; i++){
 
-
            String userName = NAME_START[random.nextInt(NAME_START.length)] + NAME_CENTER[random.nextInt(NAME_CENTER.length)]+NAME_END[random.nextInt(NAME_END.length)];
            String userSurname = SURNAME_START[random.nextInt(SURNAME_START.length)] + SURNAME_CENTER[random.nextInt(SURNAME_CENTER.length)]+SURNAME_END[random.nextInt(SURNAME_END.length)];
            LocalDate now = LocalDate.now();
@@ -167,6 +168,84 @@ public class DatabasePopulator {
             DatabasePopulator populator = new DatabasePopulator();
             populator.save(userCard);
 
+        }
+    }
+
+    private static void authorizedIssuersGenerator(int numberOfVendingMachines, int numberOfResellers){
+        EntityManager entityManager = emf.createEntityManager();
+        VendingMachineDAO vendingMachineDAO = new VendingMachineDAO(emf);
+        AuthorizedIssuerDAO authorizedIssuerDAO = new AuthorizedIssuerDAO(emf);
+
+        String[] SPEED = {
+                "Fast", "Quick", "Speed", "Rapid", "Express",
+                "Flash", "Sprint", "Turbo", "Veloce", "Subito"
+        };
+        String[] SERVICE = {
+                "Point", "Box", "Hub", "Stop", "Station", "Desk", "Self", "Go", "Express", "Kiosk"
+        };
+        String[] TRAVEL = {"Ticket", "Ride", "Entrance", "Travel", "Service"};
+        String[] SHOP = {"Shop", "Ticket", "Mobilità", "Biglietti", "Servizi", "Vendita", "Rivendita",
+                "Trasporti", "Point", "Tabacchi" };
+
+        String[] STREET_NAME = {"Roma", "Milano", "Torino", "Napoli", "Verona",
+                "Firenze", "Bologna", "Genova", "Venezia", "Palermo",
+                "Dante", "Verdi", "Manzoni", "Leopardi", "Carducci",
+                "Pascoli", "Foscolo", "Ariosto", "Petrarca", "Boccaccio",
+                "Garibaldi", "Mazzini", "Cavour", "Marconi", "Battisti",
+                "Colombo", "Kennedy", "Matteotti", "De Gasperi", "Rossini",
+                "Europa", "Liberta", "Repubblica", "Unita", "Indipendenza",
+                "Pace", "Speranza", "Progresso", "Lavoro", "Giustizia",
+                "Stazione", "Mercato", "Castello", "Duomo", "Municipio",
+                "Porto", "Borgo", "Centro", "Giardino", "Parco",
+                "Lago", "Monte", "Colle", "Fiume", "Ponte",
+                "Sole", "Luna", "Stella", "Aurora", "Tramonto",
+                "Primavera", "Estate", "Autunno", "Inverno", "Alba",
+                "Rose", "Tulipani", "Violette", "Girasoli", "Orchidee",
+                "Tigli", "Pini", "Platani", "Olmi", "Cipressi",
+                "Cedri", "Magnolie", "Acacie", "Betulle", "Allori",
+                "Artigiani", "Commercianti", "Viaggiatori", "Naviganti", "Poeti",
+                "Pittori", "Musicisti", "Scultori", "Medici", "Maestri",
+                "della Pace", "della Liberta", "della Repubblica", "della Stazione", "del Mercato",
+                "del Sole", "della Luna", "delle Stelle", "dell'Alba", "del Tramonto",
+                "del Parco", "del Lago", "del Monte", "del Ponte", "del Porto",
+                "dei Tigli", "dei Pini", "dei Platani", "delle Rose", "delle Violette",
+                "dei Gelsi", "dei Cedri", "delle Acacie", "dei Giardini", "dei Colli",
+                "San Marco", "San Paolo", "San Pietro", "San Luca", "Santa Lucia",
+                "Santa Chiara", "Santa Maria", "San Giovanni", "San Michele", "San Francesco"};
+
+        String[] STREET_TYPE = {"Via", "Viale", "Piazza", "Corso", "Largo", "Piazzale"};
+
+        String CITY = "Roma";
+
+
+
+        Random random = new Random();
+
+        for (int i=0; i<numberOfVendingMachines; i++){
+            String issuerName= SPEED[random.nextInt(SPEED.length)]+SERVICE[random.nextInt(SERVICE.length)]+" "+TRAVEL[random.nextInt(TRAVEL.length)];
+            String issuerAddress =  STREET_TYPE[random.nextInt(STREET_TYPE.length)]+" "+STREET_NAME[random.nextInt(STREET_NAME.length)]+", "+random.nextInt(200)+" - Roma";
+            String serialNumber = String.valueOf(random.nextLong());
+            Boolean vendingMachineAvailability= random.nextBoolean();
+            VendingMachine vendingMachine = new VendingMachine(issuerName, issuerAddress, serialNumber, vendingMachineAvailability);
+
+            try {
+                vendingMachineDAO.save(vendingMachine);
+            } catch (RuntimeException e) {
+                System.out.println("Distributore n. "+i+" non salvato. "+e);
+            }
+
+
+        }
+        for (int i=0; i<numberOfResellers; i++){
+            String issuerName= SPEED[random.nextInt(SPEED.length)]+SERVICE[random.nextInt(SERVICE.length)]+" "+SHOP[random.nextInt(SHOP.length)];
+            String issuerAddress =  STREET_TYPE[random.nextInt(STREET_TYPE.length)]+" "+STREET_NAME[random.nextInt(STREET_NAME.length)]+", "+random.nextInt(200)+" - Roma";
+            String vatNumber = "IT"+(random.nextLong((99999999999L-10000000000L)+1)+10000000000L);
+            Reseller reseller= new Reseller(issuerName, issuerAddress, vatNumber);
+            try {
+            authorizedIssuerDAO.save(reseller);
+            } catch (RuntimeException e) {
+                System.out.println("Distributore n. "+i+" non salvato. "+e);
+            }
         }
     }
 }

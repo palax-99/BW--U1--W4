@@ -1,4 +1,4 @@
-package AntoninoPalazzolo.dao;
+package AntoninoPalazzolo.DAO;
 
 import AntoninoPalazzolo.entities.User;
 import AntoninoPalazzolo.entities.UserCard;
@@ -7,7 +7,6 @@ import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -16,7 +15,7 @@ public class UserCardDAO {
 
     private EntityManager em;
 
-    public UserCardDAO(EntityManager em){
+    public UserCardDAO(EntityManager em) {
         this.em = em;
     }
 
@@ -25,7 +24,7 @@ public class UserCardDAO {
     }
 
     //Metodo per generare numero tessera
-    private long generateCardNumber(){
+    private long generateCardNumber() {
         long cardNumber;
 
         // crea un numero randomico a 8 cifre e lo rifà fintanto che il cardNumber esiste già. Quando non lo trova già nel DB, esce.
@@ -35,20 +34,9 @@ public class UserCardDAO {
         return cardNumber;
     }
 
-    public UserCard findByCardNumber (long cardNumber){
+    public UserCard findByCardNumber(long cardNumber) {
         TypedQuery<UserCard> query = em.createQuery("SELECT uc FROM UserCard uc WHERE uc.userCardNumber = :cardNumber", UserCard.class);
         query.setParameter("cardNumber", cardNumber);
-
-        try {
-            return query.getSingleResult();
-        } catch (NoResultException e){
-            return null;
-        }
-    }
-
-    public UserCard findByUserId (UUID userId){
-        TypedQuery<UserCard> query = em.createQuery("SELECT uc FROM UserCard uc WHERE uc.user.idUser = :userId", UserCard.class);
-        query.setParameter("userId",userId);
 
         try {
             return query.getSingleResult();
@@ -57,7 +45,18 @@ public class UserCardDAO {
         }
     }
 
-    public void issueCardToUser (UUID userId){
+    public UserCard findByUserId(UUID userId) {
+        TypedQuery<UserCard> query = em.createQuery("SELECT uc FROM UserCard uc WHERE uc.user.idUser = :userId", UserCard.class);
+        query.setParameter("userId", userId);
+
+        try {
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public void issueCardToUser(UUID userId) {
         User user = em.find(User.class, userId);
 
         //Controlla che l'User esista. Se non viene trovato, lancia exception.
@@ -69,7 +68,7 @@ public class UserCardDAO {
         UserCard existingCard = findByUserId(userId);
 
         //Controlla se esiste una tessera collegata a quell'ID utente. Se la trova, vuol dire che c'è già una tessera collegata e lancia eccezione.
-        if(existingCard != null) {
+        if (existingCard != null) {
             throw new IllegalArgumentException("L'utente scelto ha già una tessera collegata!");
         }
 
@@ -85,9 +84,11 @@ public class UserCardDAO {
         transaction.commit();
     }
 
-    public void renewCard (long cardNumber) {
+    public void renewCard(long cardNumber) {
         UserCard userCard = findByCardNumber(cardNumber);
-        if (userCard == null){throw new IllegalArgumentException("Tessera non trovata!");}
+        if (userCard == null) {
+            throw new IllegalArgumentException("Tessera non trovata!");
+        }
         LocalDateTime now = LocalDateTime.now();
         EntityTransaction transaction = em.getTransaction();
 
@@ -96,16 +97,16 @@ public class UserCardDAO {
         userCard.setCardActivationDate(now);
 
         //Se la tessera è ancora valida, viene aggiunto un anno alla scadenza
-        if (userCard.getCardExpiryDate() != null && userCard.getCardExpiryDate().isAfter(now)){
+        if (userCard.getCardExpiryDate() != null && userCard.getCardExpiryDate().isAfter(now)) {
             userCard.setCardExpiryDate(userCard.getCardExpiryDate().plusYears(1));
-        // Se è scaduta già, imposta la scadenza a un anno dalla data attuale
-        }else {
+            // Se è scaduta già, imposta la scadenza a un anno dalla data attuale
+        } else {
             userCard.setCardExpiryDate(now.plusYears(1));
         }
         transaction.commit();
     }
 
-    public boolean isCardValid (long cardNumber) {
+    public boolean isCardValid(long cardNumber) {
         UserCard userCard = findByCardNumber(cardNumber);
         if (userCard == null) {
             throw new IllegalArgumentException("Tessera non trovata!");

@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.UUID;
 
+import static AntoninoPalazzolo.DAO.FareProductDAO.isThereAValidPass;
 import static AntoninoPalazzolo.entities.Ticket.ticketValidation;
 
 public class Scanne {
@@ -93,7 +94,7 @@ public class Scanne {
                     // isThereAValidPass se esiste un abbonamento valido associato
                     System.out.print("Inserisci il numero tessera: ");
                     long cardNumber = Long.parseLong(scanner.nextLine());
-                    boolean valido = FareProductDAO.isThereAValidPass(em, cardNumber);
+                    boolean valido = isThereAValidPass(em, cardNumber);
                     if (valido) {
                         System.out.println("L'abbonamento è valido!");
                     } else {
@@ -245,8 +246,111 @@ public class Scanne {
                     // Funzionalità validazione biglietto end
                 }
                 case "4" -> {
-                    // Funzionalità da implementare con i colleghi
-                    System.out.println("Funzionalità acquisto abbonamento — da implementare!");
+                    // Funzionalità acquisto abbonamento start
+                    System.out.println("Funzionalità acquisto abbonamento");
+                    passStart: while(true){
+
+                        System.out.println("Per acquistare un abbonamento inserisci il tuo numero di tessera, inserisci n per uscire");
+                        String answer = scanner.nextLine();
+                        if ("n".equals(answer)){
+                            break;
+                        }
+
+                        long userCardNumber=0;
+
+                        try
+                        {
+                            userCardNumber = Long.parseLong(answer);
+                            if (isThereAValidPass(em, userCardNumber)) {
+                                System.out.println("Questa tessera ha già un abbonamento attivo in corso di validità");
+                                Pass actualPass = em.createQuery("SELECT p FROM Pass p WHERE p.userCard.userCardNumber = :numero AND p.passExpiryDate >= CURRENT_DATE", Pass.class).setParameter("numero", userCardNumber).getSingleResult();
+                                System.out.println("L'abbonamento attuale scadrà il "+ actualPass.getPassExpiryDate());
+                                break;
+                            }
+
+                        } catch (RuntimeException e){
+                            System.out.println("Inserimento non valido");
+                            continue;
+                        }
+
+                        UserCard userCard = userCardDAO.findByCardNumber(userCardNumber);
+
+                        if (userCard==null) {
+                            System.out.println("Tessera non trovata");
+                            break;
+                        }
+
+                        if(userCard.getCardExpiryDate().isBefore(LocalDateTime.now())){
+                            System.out.println("La tessera è scaduta, devi rinnovarla");
+                            break;
+                        }
+
+                        pass: while (true)
+                        {
+                            System.out.println("Premi 1 per l'abbonamento settimanale\nPremi 2 l'abbonamento mensile \nPremi 3 l'abbonamento semestrale");
+                            int choice;
+                            PassType passType;
+                            try {
+                                choice = Integer.parseInt(scanner.nextLine());}
+                            catch (IllegalArgumentException e){
+                                System.out.println("Inserimento non corretto");
+                                continue;
+                            }
+
+                            switch (choice){
+                                case 1: {
+                                    passType = PassType.WEEKLY;
+                                    System.out.println("Hai scelto l'abbonamento settimanale");
+                                    break;
+                                }
+                                case 2: {
+                                    passType = PassType.MONTHLY;
+                                    System.out.println("Hai scelto l'abbonamento mensile");
+                                    break;
+                                }
+                                case 3: {
+                                    passType = PassType.HALF_YEARLY;
+                                    System.out.println("Hai scelto l'abbonamento semestrale");
+                                    break;
+                                }
+                                default:{
+                                    System.out.println("Inserimento errato, riprova");
+                                    continue;
+                                }
+                            }
+                            System.out.println("Scegli dove vuoi acquistare l'abbonamento digitando il numero corrispondente");
+                            List<AuthorizedIssuer> authorizedIssuersAvailable = em.createQuery("SELECT a FROM AuthorizedIssuer a WHERE a NOT IN (SELECT vm FROM VendingMachine vm WHERE vm.vendingMachineAvailability=FALSE)", AuthorizedIssuer.class).getResultList();
+                            for (int i = 0; i < authorizedIssuersAvailable.size(); i++) {
+                                System.out.println(i + ". "+authorizedIssuersAvailable.get(i).getIssuerName()+" per scegliere digita: "+i);
+                            }
+                            int aiNumber;
+
+                            try {
+                                aiNumber = Integer.parseInt(scanner.nextLine());}
+                            catch (IllegalArgumentException e){
+                                System.out.println("Inserimento non corretto");
+                                continue;
+                            }
+
+                            AuthorizedIssuer authorizedIssuer = authorizedIssuersAvailable.get(aiNumber);
+                            System.out.println("Hai scelto "+authorizedIssuer.getIssuerName());
+
+                            Pass pass = new Pass(LocalDateTime.now(), authorizedIssuer, passType, userCard);
+
+                            try {
+                                fareProductDAO.save(pass);
+                            } catch (RuntimeException e) {
+                                System.out.println("C'è stato un errore nell'emissione dell'abbonamento, riprova");
+                            }
+
+                            System.out.println("L'abbonamento richiesto, è stato emesso, ricordati che scadrà: "+pass.getPassExpiryDate());
+                            break passStart;
+
+                        }
+
+
+                    }
+                    // Funzionalità acquisto abbonamento end
                 }
                 case "0" -> {
                     // Imposto running a false per uscire dal while e terminare il menu

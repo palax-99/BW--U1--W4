@@ -1,11 +1,9 @@
 package AntoninoPalazzolo.entities;
 
 import AntoninoPalazzolo.DAO.*;
-import AntoninoPalazzolo.DAO.FareProductDAO;
 import AntoninoPalazzolo.exception.NotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,10 +17,13 @@ import static AntoninoPalazzolo.DAO.FareProductDAO.isThereAValidPass;
 import static AntoninoPalazzolo.entities.Ticket.ticketValidation;
 
 public class Scanne {
-    public static void main(String[] args) {
 
-        // Creo la connessione al database tramite il persistence unit definito nel persistence.xml
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("bwu1w4");
+    // Sostituisco il main con un metodo statico start —
+    // riceve l'emf già creato da Application invece di crearne uno nuovo,
+    // così c'è un'unica connessione al DB gestita da Application
+    public static void start(EntityManagerFactory emf) {
+
+        // Creo l'EntityManager dalla factory ricevuta da Application
         EntityManager em = emf.createEntityManager();
 
         // Istanzio tutti i DAO che mi servono, passando l'EntityManager a ciascuno
@@ -49,7 +50,6 @@ public class Scanne {
         if (user == null) {
             System.out.println("Utente non trovato!");
             em.close();
-            emf.close();
             return;
         }
 
@@ -63,11 +63,10 @@ public class Scanne {
             menuUser(scanner, userCardDAO, fareProductDAO, em);
         }
 
-        // Chiudo scanner, EntityManager e EntityManagerFactory per liberare le risorse
-        scanner.close();
+        // Chiudo solo l'EntityManager — l'emf lo chiude Application
         em.close();
-        emf.close();
     }
+
 
     // ==================== MENU UTENTE ====================
     private static void menuUser(Scanner scanner, UserCardDAO userCardDAO,
@@ -104,19 +103,19 @@ public class Scanne {
                 case "2" -> {
                     // Funzionalità acquisto biglietto start
                     System.out.println("Funzionalità acquisto biglietto");
-                    ticket: while (true)
-                    {
+                    ticket:
+                    while (true) {
                         System.out.println("Premi 1 per biglietto da 30 minuti\nPremi 2 per biglietto da 60 minuti \nPremi 3 per biglietto da 90 minuti \nPremi 4 per biglietto da 5 ore \nPremi 5 per biglietto giornaliero");
                         int choice;
                         int validityMinutes;
                         try {
-                        choice = Integer.parseInt(scanner.nextLine());}
-                        catch (IllegalArgumentException e){
+                            choice = Integer.parseInt(scanner.nextLine());
+                        } catch (IllegalArgumentException e) {
                             System.out.println("Inserimento non corretto");
                             continue;
                         }
 
-                        switch (choice){
+                        switch (choice) {
                             case 1: {
                                 validityMinutes = 30;
                                 System.out.println("Hai scelto il biglietto da 30 minuti");
@@ -142,7 +141,7 @@ public class Scanne {
                                 System.out.println("Hai scelto il biglietto giornaliero");
                                 break;
                             }
-                            default:{
+                            default: {
                                 System.out.println("Inserimento errato, riprova");
                                 continue;
                             }
@@ -150,19 +149,19 @@ public class Scanne {
                         System.out.println("Scegli dove vuoi acquistare il biglietto digitando il numero corrispondente");
                         List<AuthorizedIssuer> authorizedIssuersAvailable = em.createQuery("SELECT a FROM AuthorizedIssuer a WHERE a NOT IN (SELECT vm FROM VendingMachine vm WHERE vm.vendingMachineAvailability=FALSE)", AuthorizedIssuer.class).getResultList();
                         for (int i = 0; i < authorizedIssuersAvailable.size(); i++) {
-                            System.out.println(i + ". "+authorizedIssuersAvailable.get(i).getIssuerName()+" per scegliere digita: "+i);
+                            System.out.println(i + ". " + authorizedIssuersAvailable.get(i).getIssuerName() + " per scegliere digita: " + i);
                         }
                         int aiNumber;
 
                         try {
-                            aiNumber = Integer.parseInt(scanner.nextLine());}
-                        catch (IllegalArgumentException e){
+                            aiNumber = Integer.parseInt(scanner.nextLine());
+                        } catch (IllegalArgumentException e) {
                             System.out.println("Inserimento non corretto");
                             continue;
                         }
 
                         AuthorizedIssuer authorizedIssuer = authorizedIssuersAvailable.get(aiNumber);
-                        System.out.println("Hai scelto "+authorizedIssuer.getIssuerName());
+                        System.out.println("Hai scelto " + authorizedIssuer.getIssuerName());
 
                         Ticket ticket = new Ticket(LocalDateTime.now(), authorizedIssuer, validityMinutes);
 
@@ -182,31 +181,33 @@ public class Scanne {
                     // Funzionalità validazione biglietto start
                     System.out.println("Funzionalità validazione biglietto");
                     System.out.println("Se procedi il tuo biglietto potrà essere utilizzato sui vari mezzi pubblici per il tempo indicato. La validazione non può essere annullata.");
-                    String idFareProduct="";
-                   validation: while (!"n".equals(idFareProduct)){
+                    String idFareProduct = "";
+                    validation:
+                    while (!"n".equals(idFareProduct)) {
                         System.out.println("Inserisci l'id del biglietto che vuoi validare. Premi n per uscire.");
-                        idFareProduct=scanner.nextLine();
-                        if ("n".equals(idFareProduct)){
+                        idFareProduct = scanner.nextLine();
+                        if ("n".equals(idFareProduct)) {
                             System.out.println("Ritorno al menù principale...");
                             break validation;
                         }
-                       Ticket ticket;
-                       try {
-                        ticket = fareProductDAO.ticketGetById(UUID.fromString(idFareProduct));} catch (
+                        Ticket ticket;
+                        try {
+                            ticket = fareProductDAO.ticketGetById(UUID.fromString(idFareProduct));
+                        } catch (
                                 RuntimeException e) {
 
-                           System.out.println("Biglietto non trovato");
-                           continue;
+                            System.out.println("Biglietto non trovato");
+                            continue;
 
-                       }
+                        }
 
-                       if(ticket.getValidatedAt()!=null) {
-                           System.out.println("Biglietto già validato in passato");
-                           System.out.println("Valido fino a "+ticket.getValidUntil());
-                           continue;
-                       }
+                        if (ticket.getValidatedAt() != null) {
+                            System.out.println("Biglietto già validato in passato");
+                            System.out.println("Valido fino a " + ticket.getValidUntil());
+                            continue;
+                        }
 
-                        System.out.println("Il biglietto "+ticket.getIdFareProduct()+" sta per essere validato");
+                        System.out.println("Il biglietto " + ticket.getIdFareProduct() + " sta per essere validato");
                         List<Vehicle> vehicles = em.createQuery("SELECT v FROM Vehicle v WHERE EXISTS (SELECT 1 FROM VehicleStatusLog vs WHERE vs.vehicle=v AND vs.vehicleAvailabilityUpdatedOn=(SELECT MAX(vs2.vehicleAvailabilityUpdatedOn) FROM VehicleStatusLog vs2 WHERE vs2.vehicle=v AND vs2.vehicleAvailabilityUpdatedOn <= CURRENT_TIMESTAMP) AND vs.vehicleInService = TRUE)", Vehicle.class).getResultList();
                         if (vehicles.isEmpty()) {
                             System.out.println("Nessun veicolo disponibile per l'obliterazione");
@@ -216,30 +217,30 @@ public class Scanne {
                         System.out.println("Scegli il veicolo fra quelli attualmente in servizio");
 
                         for (int i = 0; i < vehicles.size(); i++) {
-                            System.out.println(i + ". Veicolo targa "+vehicles.get(i).getLicensePlate()+" per scegliere digita: "+i);
+                            System.out.println(i + ". Veicolo targa " + vehicles.get(i).getLicensePlate() + " per scegliere digita: " + i);
                         }
 
                         int vNumber;
 
                         try {
-                            vNumber = Integer.parseInt(scanner.nextLine());}
-                        catch (IllegalArgumentException e){
+                            vNumber = Integer.parseInt(scanner.nextLine());
+                        } catch (IllegalArgumentException e) {
                             System.out.println("Inserimento non corretto");
                             continue;
                         }
 
-                        if (vNumber>=vehicles.size()||vNumber<0){
+                        if (vNumber >= vehicles.size() || vNumber < 0) {
                             System.out.println("Scelta non valida");
                             continue;
 
                         }
 
                         Vehicle vehicle = vehicles.get(vNumber);
-                        System.out.println("Hai scelto il veicolo targa: "+vehicle.getLicensePlate());
+                        System.out.println("Hai scelto il veicolo targa: " + vehicle.getLicensePlate());
 
                         fareProductDAO.save(ticketValidation(ticket, vehicle));
 
-                        System.out.println("Il biglietto è stato validato, hai ancora "+ticket.getValidityMinutes()+" minuti di utilizzo possibile");
+                        System.out.println("Il biglietto è stato validato, hai ancora " + ticket.getValidityMinutes() + " minuti di utilizzo possibile");
                         break validation;
 
                     }
@@ -248,56 +249,56 @@ public class Scanne {
                 case "4" -> {
                     // Funzionalità acquisto abbonamento start
                     System.out.println("Funzionalità acquisto abbonamento");
-                    passStart: while(true){
+                    passStart:
+                    while (true) {
 
                         System.out.println("Per acquistare un abbonamento inserisci il tuo numero di tessera, inserisci n per uscire");
                         String answer = scanner.nextLine();
-                        if ("n".equals(answer)){
+                        if ("n".equals(answer)) {
                             break;
                         }
 
-                        long userCardNumber=0;
+                        long userCardNumber = 0;
 
-                        try
-                        {
+                        try {
                             userCardNumber = Long.parseLong(answer);
                             if (isThereAValidPass(em, userCardNumber)) {
                                 System.out.println("Questa tessera ha già un abbonamento attivo in corso di validità");
                                 Pass actualPass = em.createQuery("SELECT p FROM Pass p WHERE p.userCard.userCardNumber = :numero AND p.passExpiryDate >= CURRENT_DATE", Pass.class).setParameter("numero", userCardNumber).getSingleResult();
-                                System.out.println("L'abbonamento attuale scadrà il "+ actualPass.getPassExpiryDate());
+                                System.out.println("L'abbonamento attuale scadrà il " + actualPass.getPassExpiryDate());
                                 break;
                             }
 
-                        } catch (RuntimeException e){
+                        } catch (RuntimeException e) {
                             System.out.println("Inserimento non valido");
                             continue;
                         }
 
                         UserCard userCard = userCardDAO.findByCardNumber(userCardNumber);
 
-                        if (userCard==null) {
+                        if (userCard == null) {
                             System.out.println("Tessera non trovata");
                             break;
                         }
 
-                        if(userCard.getCardExpiryDate().isBefore(LocalDateTime.now())){
+                        if (userCard.getCardExpiryDate().isBefore(LocalDateTime.now())) {
                             System.out.println("La tessera è scaduta, devi rinnovarla");
                             break;
                         }
 
-                        pass: while (true)
-                        {
+                        pass:
+                        while (true) {
                             System.out.println("Premi 1 per l'abbonamento settimanale\nPremi 2 l'abbonamento mensile \nPremi 3 l'abbonamento semestrale");
                             int choice;
                             PassType passType;
                             try {
-                                choice = Integer.parseInt(scanner.nextLine());}
-                            catch (IllegalArgumentException e){
+                                choice = Integer.parseInt(scanner.nextLine());
+                            } catch (IllegalArgumentException e) {
                                 System.out.println("Inserimento non corretto");
                                 continue;
                             }
 
-                            switch (choice){
+                            switch (choice) {
                                 case 1: {
                                     passType = PassType.WEEKLY;
                                     System.out.println("Hai scelto l'abbonamento settimanale");
@@ -313,7 +314,7 @@ public class Scanne {
                                     System.out.println("Hai scelto l'abbonamento semestrale");
                                     break;
                                 }
-                                default:{
+                                default: {
                                     System.out.println("Inserimento errato, riprova");
                                     continue;
                                 }
@@ -321,19 +322,19 @@ public class Scanne {
                             System.out.println("Scegli dove vuoi acquistare l'abbonamento digitando il numero corrispondente");
                             List<AuthorizedIssuer> authorizedIssuersAvailable = em.createQuery("SELECT a FROM AuthorizedIssuer a WHERE a NOT IN (SELECT vm FROM VendingMachine vm WHERE vm.vendingMachineAvailability=FALSE)", AuthorizedIssuer.class).getResultList();
                             for (int i = 0; i < authorizedIssuersAvailable.size(); i++) {
-                                System.out.println(i + ". "+authorizedIssuersAvailable.get(i).getIssuerName()+" per scegliere digita: "+i);
+                                System.out.println(i + ". " + authorizedIssuersAvailable.get(i).getIssuerName() + " per scegliere digita: " + i);
                             }
                             int aiNumber;
 
                             try {
-                                aiNumber = Integer.parseInt(scanner.nextLine());}
-                            catch (IllegalArgumentException e){
+                                aiNumber = Integer.parseInt(scanner.nextLine());
+                            } catch (IllegalArgumentException e) {
                                 System.out.println("Inserimento non corretto");
                                 continue;
                             }
 
                             AuthorizedIssuer authorizedIssuer = authorizedIssuersAvailable.get(aiNumber);
-                            System.out.println("Hai scelto "+authorizedIssuer.getIssuerName());
+                            System.out.println("Hai scelto " + authorizedIssuer.getIssuerName());
 
                             Pass pass = new Pass(LocalDateTime.now(), authorizedIssuer, passType, userCard);
 
@@ -343,7 +344,7 @@ public class Scanne {
                                 System.out.println("C'è stato un errore nell'emissione dell'abbonamento, riprova");
                             }
 
-                            System.out.println("L'abbonamento richiesto, è stato emesso, ricordati che scadrà: "+pass.getPassExpiryDate());
+                            System.out.println("L'abbonamento richiesto, è stato emesso, ricordati che scadrà: " + pass.getPassExpiryDate());
                             break passStart;
 
                         }
@@ -380,6 +381,8 @@ public class Scanne {
             System.out.println("6. Statistiche biglietti emessi per periodo");
             System.out.println("7. Statistiche biglietti validati per veicolo");
             System.out.println("8. Tempo medio percorrenza tratta");
+            System.out.println("9. Numero corse di un veicolo su una tratta");
+            System.out.println("10. Tempo medio di un veicolo su una tratta");
             System.out.println("0. Esci");
             System.out.print("Scelta: ");
 
@@ -490,6 +493,44 @@ public class Scanne {
                         double media = runDAO.getAverageTravelTime(r);
                         System.out.println("Tempo medio percorrenza tratta " +
                                 r.getDeparture() + " -> " + r.getTerminus() +
+                                ": " + media + " minuti");
+                    } catch (NotFoundException e) {
+                        System.out.println("Errore: " + e.getMessage());
+                    }
+                }
+                case "9" -> {
+                    // Chiedo ID veicolo e ID tratta e conto quante volte quel veicolo
+                    // ha percorso quella specifica tratta
+                    System.out.print("ID veicolo: ");
+                    String idVehicle = scanner.nextLine();
+                    System.out.print("ID tratta: ");
+                    String idRoute = scanner.nextLine();
+                    try {
+                        Vehicle v = vehicleDAO.findById(idVehicle);
+                        Route r = routeDAO.findById(idRoute);
+                        long count = runDAO.getRunCountByVehicleAndRoute(v, r);
+                        System.out.println("Il veicolo " + v.getLicensePlate() +
+                                " ha percorso la tratta " + r.getDeparture() +
+                                " -> " + r.getTerminus() +
+                                " per " + count + " volte.");
+                    } catch (NotFoundException e) {
+                        System.out.println("Errore: " + e.getMessage());
+                    }
+                }
+                case "10" -> {
+                    // Chiedo ID veicolo e ID tratta e calcolo il tempo medio effettivo
+                    // di percorrenza di quel veicolo su quella specifica tratta
+                    System.out.print("ID veicolo: ");
+                    String idVehicle = scanner.nextLine();
+                    System.out.print("ID tratta: ");
+                    String idRoute = scanner.nextLine();
+                    try {
+                        Vehicle v = vehicleDAO.findById(idVehicle);
+                        Route r = routeDAO.findById(idRoute);
+                        double media = runDAO.getAverageTravelTimeByVehicleAndRoute(v, r);
+                        System.out.println("Tempo medio di " + v.getLicensePlate() +
+                                " sulla tratta " + r.getDeparture() +
+                                " -> " + r.getTerminus() +
                                 ": " + media + " minuti");
                     } catch (NotFoundException e) {
                         System.out.println("Errore: " + e.getMessage());

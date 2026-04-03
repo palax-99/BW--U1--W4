@@ -1,5 +1,6 @@
 package AntoninoPalazzolo;
 
+import AntoninoPalazzolo.entities.Scanne;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
@@ -18,17 +19,17 @@ public class Application {
 
         //inserisco la scelta relativa al popolamento del database
 
-       first: while (true)
-        {
+        first:
+        while (true) {
             System.out.println("Premi y per popolare il database con 30 utenti, 30 tessere, 10 distributori automatici, 5 rivenditori, 40 veicoli ognuno con un massimo di 10 status di manutenzione per veicolo, 100 biglietti, 20 abbonamenti, 20 tratte e 500 corse.\n Oppure premi n per continuare senza generare dati o p per personalizzare il numero dei popolamenti del database");
             String choice = scanner.nextLine();
 
-            if ("n".equals(choice)){
+            if ("n".equals(choice)) {
                 break;
-             } else if ("y".equals(choice)) {
+            } else if ("y".equals(choice)) {
                 populate();
                 break;
-            } else if ("p".equals(choice)){
+            } else if ("p".equals(choice)) {
                 while (true) {
                     try {
 
@@ -43,28 +44,26 @@ public class Application {
                         int numberOfRoutes = Integer.parseInt(scanner.nextLine());
                         int numberOfRuns = Integer.parseInt(scanner.nextLine());
 
-                    System.out.println("Popolazione in corso");
+                        System.out.println("Popolazione in corso");
 
-                    populate(numberOfUsers, numberOfVendingMachines, numberOfResellers, numberOfVehicles, maxNumberOfLogPerVehicle,
-                            numberOfTickets, numberOfPasses, numberOfRoutes, numberOfRuns);
-                    break first;
-                }
-                    catch (RuntimeException e){
+                        populate(numberOfUsers, numberOfVendingMachines, numberOfResellers, numberOfVehicles, maxNumberOfLogPerVehicle,
+                                numberOfTickets, numberOfPasses, numberOfRoutes, numberOfRuns);
+                        break first;
+                    } catch (RuntimeException e) {
                         System.out.println("inserimento non valido");
                         System.out.println();
                         break;
                     }
 
                 }
-            }
-            else {
+            } else {
                 System.out.println("Scelta non valida, riprova.");
             }
 
         }
 
         //fine del popolamento del database
-
+        Scanne.start(emf);
         System.out.println("Hello World!");
     }
 }

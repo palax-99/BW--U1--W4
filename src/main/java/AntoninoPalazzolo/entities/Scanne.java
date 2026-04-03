@@ -108,8 +108,8 @@ public class Scanne {
             System.out.println("1. Verifica validità abbonamento");
             System.out.println("2. Acquista biglietto");
             System.out.println("3. Acquista abbonamento");
-            System.out.println("4. Controllo Validità Tessera");
-            System.out.println("5. Rinnovo Tessera");
+            System.out.println("5. Controllo Validità Tessera");
+            System.out.println("6. Rinnovo Tessera");
             System.out.println("0. Esci");
             System.out.print("Scelta: ");
 
@@ -138,7 +138,7 @@ public class Scanne {
                     // Funzionalità da implementare con i colleghi
                     System.out.println("Funzionalità acquisto abbonamento — da implementare!");
                 }
-                case "4" -> {
+                case "5" -> {
                     try {
                         UserCard userCard = userCardDAO.findByUserId(user.getIdUser());
 
@@ -161,7 +161,7 @@ public class Scanne {
                     }
 
                 }
-                case "5" -> {
+                case "6" -> {
                     try {
                         UserCard userCard = userCardDAO.findByUserId(user.getIdUser());
                         if (userCard == null) {

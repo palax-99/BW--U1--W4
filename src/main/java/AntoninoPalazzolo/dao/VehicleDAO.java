@@ -1,4 +1,4 @@
-package AntoninoPalazzolo.DAO;
+package AntoninoPalazzolo.dao;
 
 import AntoninoPalazzolo.entities.Vehicle;
 import AntoninoPalazzolo.entities.VehicleStatusLog;

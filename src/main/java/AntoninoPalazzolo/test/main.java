@@ -1,8 +1,8 @@
 package AntoninoPalazzolo.test;
 
-import AntoninoPalazzolo.DAO.RouteDAO;
-import AntoninoPalazzolo.DAO.RunDAO;
-import AntoninoPalazzolo.DAO.VehicleDAO;
+import AntoninoPalazzolo.dao.RouteDAO;
+import AntoninoPalazzolo.dao.RunDAO;
+import AntoninoPalazzolo.dao.VehicleDAO;
 import AntoninoPalazzolo.entities.Route;
 import AntoninoPalazzolo.entities.Run;
 import AntoninoPalazzolo.entities.Vehicle;

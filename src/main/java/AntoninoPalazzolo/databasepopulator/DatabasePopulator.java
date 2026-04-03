@@ -1,6 +1,6 @@
 package AntoninoPalazzolo.databasepopulator;
 
-import AntoninoPalazzolo.DAO.*;
+import AntoninoPalazzolo.dao.*;
 import AntoninoPalazzolo.entities.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;

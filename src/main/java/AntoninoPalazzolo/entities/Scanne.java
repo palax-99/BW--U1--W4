@@ -1,7 +1,7 @@
 package AntoninoPalazzolo.entities;
 
-import AntoninoPalazzolo.DAO.*;
-import AntoninoPalazzolo.DAO.FareProductDAO;
+import AntoninoPalazzolo.dao.*;
+import AntoninoPalazzolo.dao.FareProductDAO;
 import AntoninoPalazzolo.exception.NotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -10,6 +10,7 @@ import jakarta.persistence.Persistence;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class Scanne {
@@ -39,12 +40,45 @@ public class Scanne {
         // Cerco l'utente nel DB tramite email
         User user = userDAO.findByEmail(email);
 
-        // Se l'utente non esiste nel DB, mostro un errore e termino il programma
+        // Se l'utente non esiste nel DB, chiedo se vuole crearne uno nuovo
         if (user == null) {
             System.out.println("Utente non trovato!");
-            em.close();
-            emf.close();
-            return;
+            System.out.println("Vuoi creare un nuovo profilo Utente? y/n");
+            boolean choice = readYOrN(scanner);
+            if (choice){
+                System.out.println("Inserire nome...");
+                String userName = scanner.nextLine();
+                System.out.println("Inserire cognome...");
+                String userSurname = scanner.nextLine();
+                System.out.println("Inserire data di nascita (formato YYYY-MM-DD)...");
+                LocalDate dateOfBirth = readDate(scanner);
+                user = new User(userName,userSurname,dateOfBirth,UserRole.USER, email);
+
+                System.out.println("Creerai il seguente utente");
+                System.out.println(user);
+                System.out.println("Vuoi confermare? y/n");
+                boolean confirm = readYOrN(scanner);
+
+                if (confirm){
+                    userDAO.save(user);
+                    System.out.println("Utente creato correttamente!");
+
+                    userCardDAO.issueCardToUser(user.getIdUser());
+                    UserCard card = userCardDAO.findByUserId(user.getIdUser());
+                    System.out.println("Tessera emessa correttamente con numero: " + card.getUserCardNumber());
+                } else {
+                    em.close();
+                    emf.close();
+                    scanner.close();
+                    return;
+                }
+            } else {
+                em.close();
+                emf.close();
+                scanner.close();
+                return;
+            }
+
         }
 
         System.out.println("Benvenuto, " + user.getUserName() + "!");
@@ -252,6 +286,35 @@ public class Scanne {
                 }
                 default -> System.out.println("Scelta non valida, riprova.");
             }
+        }
+    }
+
+    private static LocalDate readDate(Scanner scanner){
+        while (true){
+            try {
+                LocalDate date = LocalDate.parse(scanner.nextLine());
+                if (date.isAfter(LocalDate.now())){
+                    System.out.println("La data non può essere nel futuro! Svegliati!");
+                    continue;
+                }
+                if (date.isBefore(LocalDate.now().minusYears(120))) {
+                    System.out.println("Data non valida! Non sei un vampiro! Riprova.");
+                    continue;
+                }
+                return date;
+            } catch (Exception e) {
+                System.out.println("Formato non valido (YYYY-MM-DD), riprova!");
+            }
+        }
+    }
+
+    private static boolean readYOrN(Scanner scanner){
+        while (true){
+            String input = scanner.nextLine().trim().toLowerCase();
+            if (input.equals("y")) return true;
+            if (input.equals("n")) return false;
+
+            System.out.println("Per favore, inserire soltanto 'y' oppure 'n'! Riprova...");
         }
     }
 }

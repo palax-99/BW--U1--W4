@@ -46,11 +46,47 @@ public class Scanne {
         // Cerco l'utente nel DB tramite email
         User user = userDAO.findByEmail(email);
 
+
+        // Se l'utente non esiste nel DB, chiedo se vuole crearne uno nuovo
         // Se l'utente non esiste nel DB, mostro un errore e termino il programma
         if (user == null) {
             System.out.println("Utente non trovato!");
-            em.close();
-            return;
+            System.out.println("Vuoi creare un nuovo profilo Utente? y/n");
+
+            boolean choice = readYOrN(scanner);
+            if (choice) {
+                System.out.println("Inserire nome...");
+                String userName = scanner.nextLine();
+                System.out.println("Inserire cognome...");
+                String userSurname = scanner.nextLine();
+                System.out.println("Inserire data di nascita (formato YYYY-MM-DD)...");
+                LocalDate dateOfBirth = readDate(scanner);
+                user = new User(userName, userSurname, dateOfBirth, UserRole.USER, email);
+
+                System.out.println("Creerai il seguente utente");
+                System.out.println(user);
+                System.out.println("Vuoi confermare? y/n");
+                boolean confirm = readYOrN(scanner);
+
+                if (confirm) {
+                    userDAO.save(user);
+                    System.out.println("Utente creato correttamente!");
+
+                    userCardDAO.issueCardToUser(user.getIdUser());
+                    UserCard card = userCardDAO.findByUserId(user.getIdUser());
+                    System.out.println("Tessera emessa correttamente con numero: " + card.getUserCardNumber());
+                } else {
+                    em.close();
+                    emf.close();
+                    scanner.close();
+                    return;
+                }
+            } else {
+                em.close();
+                emf.close();
+                scanner.close();
+                return;
+            }
         }
 
         System.out.println("Benvenuto, " + user.getUserName() + "!");
@@ -60,17 +96,19 @@ public class Scanne {
         if (user.getUserRole() == UserRole.ADMIN) {
             menuAdmin(scanner, vehicleDAO, routeDAO, runDAO, fareProductDAO, userCardDAO);
         } else {
-            menuUser(scanner, userCardDAO, fareProductDAO, em);
+            menuUser(scanner, userCardDAO, fareProductDAO, em, user);
         }
 
         // Chiudo solo l'EntityManager — l'emf lo chiude Application
         em.close();
+
+        // ==================== MENU UTENTE ================     emf.close();
     }
 
 
     // ==================== MENU UTENTE ====================
     private static void menuUser(Scanner scanner, UserCardDAO userCardDAO,
-                                 FareProductDAO fareProductDAO, EntityManager em) {
+                                 FareProductDAO fareProductDAO, EntityManager em, User user) {
 
         // Il while mantiene il menu attivo finché l'utente non sceglie di uscire
         boolean running = true;
@@ -80,6 +118,8 @@ public class Scanne {
             System.out.println("2. Acquista biglietto");
             System.out.println("3. Valida il biglietto");
             System.out.println("4. Acquista abbonamento");
+            System.out.println("5. Controllo Validità Tessera");
+            System.out.println("6. Rinnovo Tessera");
             System.out.println("0. Esci");
             System.out.print("Scelta: ");
 
@@ -353,6 +393,43 @@ public class Scanne {
                     }
                     // Funzionalità acquisto abbonamento end
                 }
+                case "5" -> {
+                    try {
+                        UserCard userCard = userCardDAO.findByUserId(user.getIdUser());
+
+                        if (userCard == null){
+                            System.out.println("Nessuna tessera trovata per l'utente loggato!");
+                        }else {
+                            long cardNumber = userCard.getUserCardNumber();
+                            boolean isValid = userCardDAO.isCardValid(cardNumber);
+                            LocalDateTime expiryDate = userCard.getCardExpiryDate();
+
+                            if (isValid){
+                                System.out.println("La tessera è valida, con scadenza in data(yy-mm-dd): " + expiryDate.toLocalDate());
+                            }else {
+                                System.out.println("La tessera non è valida. Scadenza in data(yy-mm-dd): " + expiryDate.toLocalDate());
+                            }
+
+                        }
+                    } catch (IllegalArgumentException e){
+                        System.out.println("Errore: " + e.getMessage());
+                    }
+
+                }
+                case "6" -> {
+                    try {
+                        UserCard userCard = userCardDAO.findByUserId(user.getIdUser());
+                        if (userCard == null) {
+                            System.out.println("Nessuna tessera trovata per l'utente loggato!");
+                        } else {
+                            userCardDAO.renewCard(userCard.getUserCardNumber());
+                            System.out.println("Tessera rinnovata correttamente!");
+                            System.out.println(userCardDAO.findByCardNumber(userCard.getUserCardNumber()));
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Errore: " + e.getMessage());
+                    }
+                }
                 case "0" -> {
                     // Imposto running a false per uscire dal while e terminare il menu
                     System.out.println("Arrivederci!");
@@ -543,6 +620,35 @@ public class Scanne {
                 }
                 default -> System.out.println("Scelta non valida, riprova.");
             }
+        }
+    }
+
+    private static LocalDate readDate(Scanner scanner){
+        while (true){
+            try {
+                LocalDate date = LocalDate.parse(scanner.nextLine());
+                if (date.isAfter(LocalDate.now())){
+                    System.out.println("La data non può essere nel futuro! Svegliati!");
+                    continue;
+                }
+                if (date.isBefore(LocalDate.now().minusYears(120))) {
+                    System.out.println("Data non valida! Non sei un vampiro! Riprova.");
+                    continue;
+                }
+                return date;
+            } catch (Exception e) {
+                System.out.println("Formato non valido (YYYY-MM-DD), riprova!");
+            }
+        }
+    }
+
+    private static boolean readYOrN(Scanner scanner){
+        while (true){
+            String input = scanner.nextLine().trim().toLowerCase();
+            if (input.equals("y")) return true;
+            if (input.equals("n")) return false;
+
+            System.out.println("Per favore, inserire soltanto 'y' oppure 'n'! Riprova...");
         }
     }
 }

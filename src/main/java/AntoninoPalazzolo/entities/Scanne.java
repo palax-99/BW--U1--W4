@@ -45,12 +45,46 @@ public class Scanne {
         // Cerco l'utente nel DB tramite email
         User user = userDAO.findByEmail(email);
 
+
+        // Se l'utente non esiste nel DB, chiedo se vuole crearne uno nuovo
         // Se l'utente non esiste nel DB, mostro un errore e termino il programma
         if (user == null) {
             System.out.println("Utente non trovato!");
-            em.close();
-            emf.close();
-            return;
+            System.out.println("Vuoi creare un nuovo profilo Utente? y/n");
+            boolean choice = readYOrN(scanner);
+            if (choice){
+                System.out.println("Inserire nome...");
+                String userName = scanner.nextLine();
+                System.out.println("Inserire cognome...");
+                String userSurname = scanner.nextLine();
+                System.out.println("Inserire data di nascita (formato YYYY-MM-DD)...");
+                LocalDate dateOfBirth = readDate(scanner);
+                user = new User(userName,userSurname,dateOfBirth,UserRole.USER, email);
+
+                System.out.println("Creerai il seguente utente");
+                System.out.println(user);
+                System.out.println("Vuoi confermare? y/n");
+                boolean confirm = readYOrN(scanner);
+
+                if (confirm){
+                    userDAO.save(user);
+                    System.out.println("Utente creato correttamente!");
+
+                    userCardDAO.issueCardToUser(user.getIdUser());
+                    UserCard card = userCardDAO.findByUserId(user.getIdUser());
+                    System.out.println("Tessera emessa correttamente con numero: " + card.getUserCardNumber());
+                } else {
+                    em.close();
+                    emf.close();
+                    scanner.close();
+                    return;
+                }
+            } else {
+                em.close();
+                emf.close();
+                scanner.close();
+                return;
+            }
         }
 
         System.out.println("Benvenuto, " + user.getUserName() + "!");

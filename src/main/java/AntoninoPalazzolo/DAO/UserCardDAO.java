@@ -1,4 +1,4 @@
-package AntoninoPalazzolo.dao;
+package AntoninoPalazzolo.DAO;
 
 import AntoninoPalazzolo.entities.User;
 import AntoninoPalazzolo.entities.UserCard;

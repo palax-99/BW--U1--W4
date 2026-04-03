@@ -1,7 +1,7 @@
 package AntoninoPalazzolo.entities;
 
-import AntoninoPalazzolo.dao.*;
-import AntoninoPalazzolo.dao.FareProductDAO;
+import AntoninoPalazzolo.DAO.*;
+import AntoninoPalazzolo.DAO.FareProductDAO;
 import AntoninoPalazzolo.exception.NotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.UUID;
 
-import static AntoninoPalazzolo.dao.FareProductDAO.isThereAValidPass;
+import static AntoninoPalazzolo.DAO.FareProductDAO.isThereAValidPass;
 import static AntoninoPalazzolo.entities.Ticket.ticketValidation;
 
 public class Scanne {

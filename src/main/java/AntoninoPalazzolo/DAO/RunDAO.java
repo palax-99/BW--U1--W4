@@ -1,4 +1,4 @@
-package AntoninoPalazzolo.dao;
+package AntoninoPalazzolo.DAO;
 
 import AntoninoPalazzolo.entities.Route;
 import AntoninoPalazzolo.entities.Run;

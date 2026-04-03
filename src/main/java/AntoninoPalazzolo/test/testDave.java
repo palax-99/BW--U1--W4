@@ -1,7 +1,7 @@
 package AntoninoPalazzolo.test;
 
-import AntoninoPalazzolo.dao.UserCardDAO;
-import AntoninoPalazzolo.dao.UserDAO;
+import AntoninoPalazzolo.DAO.UserCardDAO;
+import AntoninoPalazzolo.DAO.UserDAO;
 import AntoninoPalazzolo.entities.User;
 import AntoninoPalazzolo.entities.UserRole;
 import jakarta.persistence.EntityManager;

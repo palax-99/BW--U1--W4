@@ -8,9 +8,9 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Scanner;
 
 public class Scanne {
@@ -88,7 +88,7 @@ public class Scanne {
         if (user.getUserRole() == UserRole.ADMIN) {
             menuAdmin(scanner, vehicleDAO, routeDAO, runDAO, fareProductDAO, userCardDAO);
         } else {
-            menuUser(scanner, userCardDAO, fareProductDAO, em);
+            menuUser(scanner, userCardDAO, fareProductDAO, em, user );
         }
 
         // Chiudo scanner, EntityManager e EntityManagerFactory per liberare le risorse
@@ -99,7 +99,7 @@ public class Scanne {
 
     // ==================== MENU UTENTE ====================
     private static void menuUser(Scanner scanner, UserCardDAO userCardDAO,
-                                 FareProductDAO fareProductDAO, EntityManager em) {
+                                 FareProductDAO fareProductDAO, EntityManager em, User user) {
 
         // Il while mantiene il menu attivo finché l'utente non sceglie di uscire
         boolean running = true;
@@ -108,6 +108,8 @@ public class Scanne {
             System.out.println("1. Verifica validità abbonamento");
             System.out.println("2. Acquista biglietto");
             System.out.println("3. Acquista abbonamento");
+            System.out.println("4. Controllo Validità Tessera");
+            System.out.println("5. Rinnovo Tessera");
             System.out.println("0. Esci");
             System.out.print("Scelta: ");
 
@@ -135,6 +137,43 @@ public class Scanne {
                 case "3" -> {
                     // Funzionalità da implementare con i colleghi
                     System.out.println("Funzionalità acquisto abbonamento — da implementare!");
+                }
+                case "4" -> {
+                    try {
+                        UserCard userCard = userCardDAO.findByUserId(user.getIdUser());
+
+                        if (userCard == null){
+                            System.out.println("Nessuna tessera trovata per l'utente loggato!");
+                        }else {
+                            long cardNumber = userCard.getUserCardNumber();
+                            boolean isValid = userCardDAO.isCardValid(cardNumber);
+                            LocalDateTime expiryDate = userCard.getCardExpiryDate();
+
+                            if (isValid){
+                                System.out.println("La tessera è valida, con scadenza in data(yy-mm-dd): " + expiryDate.toLocalDate());
+                            }else {
+                                System.out.println("La tessera non è valida. Scadenza in data(yy-mm-dd): " + expiryDate.toLocalDate());
+                            }
+
+                        }
+                    } catch (IllegalArgumentException e){
+                        System.out.println("Errore: " + e.getMessage());
+                    }
+
+                }
+                case "5" -> {
+                    try {
+                        UserCard userCard = userCardDAO.findByUserId(user.getIdUser());
+                        if (userCard == null) {
+                            System.out.println("Nessuna tessera trovata per l'utente loggato!");
+                        } else {
+                            userCardDAO.renewCard(userCard.getUserCardNumber());
+                            System.out.println("Tessera rinnovata correttamente!");
+                            System.out.println(userCardDAO.findByCardNumber(userCard.getUserCardNumber()));
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Errore: " + e.getMessage());
+                    }
                 }
                 case "0" -> {
                     // Imposto running a false per uscire dal while e terminare il menu

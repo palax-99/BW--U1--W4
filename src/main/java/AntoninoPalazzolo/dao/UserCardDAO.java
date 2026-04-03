@@ -90,15 +90,20 @@ public class UserCardDAO {
             throw new IllegalArgumentException("Tessera non trovata!");
         }
         LocalDateTime now = LocalDateTime.now();
-        EntityTransaction transaction = em.getTransaction();
+        LocalDateTime expiryDate = userCard.getCardExpiryDate();
 
+        if (expiryDate != null && expiryDate.isAfter(now.plusMonths(1))) {
+            throw new IllegalArgumentException("La tessera non è ancora rinnovabile. Può essere rinnovata solo a un mese dalla scadenza!");
+        }
+
+        EntityTransaction transaction = em.getTransaction();
         transaction.begin();
         //Aggiorna ad ora la data di attivazione della carta, dopo aver controllato che la carta esiste già
         userCard.setCardActivationDate(now);
 
         //Se la tessera è ancora valida, viene aggiunto un anno alla scadenza
-        if (userCard.getCardExpiryDate() != null && userCard.getCardExpiryDate().isAfter(now)) {
-            userCard.setCardExpiryDate(userCard.getCardExpiryDate().plusYears(1));
+        if (expiryDate != null && expiryDate.isAfter(now)) {
+            userCard.setCardExpiryDate(expiryDate.plusYears(1));
             // Se è scaduta già, imposta la scadenza a un anno dalla data attuale
         } else {
             userCard.setCardExpiryDate(now.plusYears(1));

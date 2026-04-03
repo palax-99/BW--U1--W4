@@ -1,4 +1,4 @@
-package AntoninoPalazzolo.dao;
+package AntoninoPalazzolo.DAO;
 
 import AntoninoPalazzolo.entities.FareProduct;
 import AntoninoPalazzolo.entities.Pass;
@@ -52,6 +52,17 @@ public class FareProductDAO {
             throw new NotSavedException(newFareproduct);
         }
 
+    }
+
+    public void update(FareProduct fareProduct) {
+        EntityTransaction transaction = this.entityManager.getTransaction();
+        try {
+            transaction.begin();
+            entityManager.merge(fareProduct);
+            transaction.commit();
+        } catch (Exception e) {
+            throw new NotSavedException(fareProduct);
+        }
     }
 
     public FareProduct getById(UUID idFareProduct) {

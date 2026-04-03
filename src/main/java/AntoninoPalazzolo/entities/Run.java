@@ -3,6 +3,8 @@ package AntoninoPalazzolo.entities;
 import jakarta.persistence.*;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -23,19 +25,36 @@ public class Run {
     private Route route;
 
     @Column(name = "actual_departure_time", nullable = false)
-    private LocalTime actualDepartureTime;
+    private LocalDateTime actualDepartureTime;
 
     @Column(name = "actual_arrival_time", nullable = false)
-    private LocalTime actualArrivalTime;
+    private LocalDateTime actualArrivalTime;
 
     @Column(name = "actual_travel_time")
     private int actualTravelTime;
 
-    public Run(Vehicle vehicle, Route route, LocalTime actualDepartureTime, LocalTime actualArrivalTime) {
+    public Run(Vehicle vehicle, Route route, LocalDateTime actualDepartureTime, LocalDateTime actualArrivalTime) {
         this.vehicle = vehicle;
         this.route = route;
         this.actualDepartureTime = actualDepartureTime;
         this.actualArrivalTime = actualArrivalTime;
+        // Calcolo automaticamente la durata in minuti dalla differenza tra arrivo e partenza
+        this.actualTravelTime = (int) Duration.between(actualDepartureTime, actualArrivalTime).toMinutes();
+    }
+
+    public Run(Vehicle vehicle, Route route, LocalDateTime actualDepartureTime, int actualTravelTime) {
+        this.vehicle = vehicle;
+        this.route = route;
+        this.actualDepartureTime = actualDepartureTime;
+        this.actualArrivalTime = actualDepartureTime.plusMinutes(actualTravelTime);
+        this.actualTravelTime = actualTravelTime;
+    }
+
+    public Run(Vehicle vehicle, Route route, LocalTime actualDepartureTime, LocalTime actualArrivalTime) {
+        this.vehicle = vehicle;
+        this.route = route;
+        this.actualDepartureTime = LocalDateTime.of(LocalDate.of(2026,3,30), actualDepartureTime);
+        this.actualArrivalTime =LocalDateTime.of(LocalDate.of(2026,3,30), actualArrivalTime);
         // Calcolo automaticamente la durata in minuti dalla differenza tra arrivo e partenza
         this.actualTravelTime = (int) Duration.between(actualDepartureTime, actualArrivalTime).toMinutes();
     }
@@ -55,11 +74,11 @@ public class Run {
         return route;
     }
 
-    public LocalTime getActualDepartureTime() {
+    public LocalDateTime getActualDepartureTime() {
         return actualDepartureTime;
     }
 
-    public LocalTime getActualArrivalTime() {
+    public LocalDateTime getActualArrivalTime() {
         return actualArrivalTime;
     }
 

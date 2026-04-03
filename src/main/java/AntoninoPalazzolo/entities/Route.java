@@ -35,6 +35,15 @@ public class Route {
     }
 
     public Route(String departure, String terminus, int travelTimeMinutes,
+                 LocalTime scheduledDepartureTime) {
+        this.departure = departure;
+        this.terminus = terminus;
+        this.travelTimeMinutes = travelTimeMinutes;
+        this.scheduledDepartureTime = scheduledDepartureTime;
+        this.scheduledArrivalTime = scheduledDepartureTime.plusMinutes(travelTimeMinutes);
+    }
+
+    public Route(String departure, String terminus, int travelTimeMinutes,
                  LocalTime scheduledDepartureTime, LocalTime scheduledArrivalTime) {
         this.departure = departure;
         this.terminus = terminus;
@@ -42,6 +51,7 @@ public class Route {
         this.scheduledDepartureTime = scheduledDepartureTime;
         this.scheduledArrivalTime = scheduledArrivalTime;
     }
+
 
     public UUID getIdRoute() {
         return idRoute;

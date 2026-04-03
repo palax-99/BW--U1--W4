@@ -72,4 +72,11 @@ public class Ticket extends FareProduct {
         ticket.setVehicle(vehicle);
         return ticket;
     }
+
+    public static Ticket ticketValidation(Ticket ticket, LocalDateTime validatedAt, Vehicle vehicle ){
+        ticket.setValidatedAt(validatedAt);
+        ticket.setValidUntil(validatedAt.plusMinutes(ticket.getValidityMinutes()));
+        ticket.setVehicle(vehicle);
+        return ticket;
+    }
 }

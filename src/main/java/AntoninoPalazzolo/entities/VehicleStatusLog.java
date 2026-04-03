@@ -27,7 +27,20 @@ public class VehicleStatusLog {
     @Column(name = "permanently_out_of_service", nullable = false)
     private boolean permanentlyOutOfService;
 
+    @Column(name="description", columnDefinition = "TEXT")
+    private String description;
+
+
     protected VehicleStatusLog() {
+    }
+
+    public VehicleStatusLog(Vehicle vehicle, boolean vehicleInService, String description) {
+        this.vehicle = vehicle;
+        this.vehicleInService = vehicleInService;
+        this.description=description;
+        this.vehicleAvailabilityUpdatedOn = LocalDateTime.now();
+        //La data di aggiornamento viene impostata automaticamente al momento
+        // della creazione del log
     }
 
     public VehicleStatusLog(Vehicle vehicle, boolean vehicleInService, boolean permanentlyOutOfService) {
@@ -46,6 +59,12 @@ public class VehicleStatusLog {
         this.vehicleAvailabilityUpdatedOn = LocalDateTime.now();
         //La data di aggiornamento viene impostata automaticamente al momento
         // della creazione del log
+    }
+
+    public VehicleStatusLog(Vehicle vehicle, LocalDateTime vehicleAvailabilityUpdatedOn, boolean vehicleInService) {
+        this.vehicle = vehicle;
+        this.vehicleAvailabilityUpdatedOn = vehicleAvailabilityUpdatedOn;
+        this.vehicleInService = vehicleInService;
     }
 
     public UUID getIdVehicleStatusLog() {

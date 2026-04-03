@@ -1,4 +1,4 @@
-package AntoninoPalazzolo.dao;
+package AntoninoPalazzolo.DAO;
 import AntoninoPalazzolo.entities.AuthorizedIssuer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -22,7 +22,7 @@ public class AuthorizedIssuerDAO {
         em.persist(issuer);
         em.getTransaction().commit();
         em.close();
-        System.out.println("AuthorizedIssuer " + issuer.getIssuerName() + " saved");
+        //System.out.println("AuthorizedIssuer " + issuer.getIssuerName() + " saved");
     }
 
     //Effettua la ricerca tramite ID

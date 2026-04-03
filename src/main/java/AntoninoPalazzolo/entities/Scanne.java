@@ -242,7 +242,7 @@ public class Scanne {
                         break validation;
 
                     }
-                    // Funzionalità validazione biglietto start
+                    // Funzionalità validazione biglietto end
                 }
                 case "4" -> {
                     // Funzionalità da implementare con i colleghi
